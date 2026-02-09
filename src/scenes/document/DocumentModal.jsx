@@ -48,7 +48,7 @@ const DEPARTMENT_CATEGORIES = {
   ]
 };
 
-const DocumentModal = ({ open, onClose, onDocumentAdded }) => {
+export const DocumentModal = ({ open, onClose, onDocumentAdded }) => {
   const [targetUser, setTargetUser] = useState(""); 
   const [deptUsers, setDeptUsers] = useState([]);
   const [fetchingUsers, setFetchingUsers] = useState(false);

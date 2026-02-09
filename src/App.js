@@ -14,7 +14,8 @@ import Sidebar from "./scenes/global/Sidebar";
 
 /* ===== PROTECTED SCENES ===== */
 import Dashboard from "./scenes/dashboard";
-import AddDocument from "./scenes/document/AddDocument";
+// COMMENTED OUT OR REMOVE IF FILE IS GONE:
+// import AddDocument from "./scenes/document/AddDocument"; 
 import Team from "./scenes/team";
 import Invoices from "./scenes/invoices";
 import Contacts from "./scenes/contacts";
@@ -56,7 +57,8 @@ function App() {
                 <Topbar />
                 <Routes>
                   <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/add-document" element={<AddDocument />} />
+                  {/* UPDATE THIS: If AddDocument is gone, point this route to Invoices or remove it */}
+                  <Route path="/add-document" element={<Invoices />} /> 
                   <Route path="/team" element={<Team />} />
                   <Route path="/contacts" element={<Contacts />} />
                   <Route path="/invoices" element={<Invoices />} />
