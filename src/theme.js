@@ -61,7 +61,7 @@ export const tokens = (mode) => ({
                     900: "#151632",
                 },
             }
-        : {
+            : {
                 grey: {
                     100: "#141414",
                     200: "#292929",
@@ -74,15 +74,15 @@ export const tokens = (mode) => ({
                     900: "#e0e0e0",
                 },
                 primary: {
-                    100: "#040509",
+                    100: "#1a1c3e", // Dark Navy (Used for titles/icons)
                     200: "#080b12",
                     300: "#0c101b",
                     400: "#101624",
-                    500: "#141b2d",
-                    600: "#434957",
-                    700: "#727681",
-                    800: "#a1a4ab",
-                    900: "#d0d1d5",
+                    500: "#eef1e6", // Background Color (Main UI)
+                    600: "#d0d1d5",
+                    700: "#a1a4ab",
+                    800: "#727681",
+                    900: "#434957",
                 },
                 greenAccent: {
                     100: "#0f2922",
@@ -107,11 +107,11 @@ export const tokens = (mode) => ({
                     900: "#f8dcdb",
                 },
                 blueAccent: {
-                    100: "#151632",
-                    200: "#2a2d64",
-                    300: "#3e4396",
-                    400: "#535ac8",
-                    500: "#6870fa",
+                    100: "#e1e2fe",
+                    200: "#92b3d7", // Soft Blue
+                    300: "#4889a1", // Medium Teal
+                    400: "#3a7a8f", // Darker Teal (Perfect for Hover)
+                    500: "#1a1c3e", // Dark Navy (Active text/icons)
                     600: "#868dfb",
                     700: "#a4a9fc",
                     800: "#c3c6fd",
@@ -119,7 +119,6 @@ export const tokens = (mode) => ({
                 },
             })
 });
-
 
 // MUI theme settings
 export const themeSettings = (mode) => {
@@ -146,22 +145,16 @@ export const themeSettings = (mode) => {
                     }
                 : {
                         primary: {
-                            main: colors.primary[100],
-                        },
-                        secondary: {
-                            main: colors.greenAccent[500],
-                        },
-                        neutral: {
-                            dark: colors.grey[700],
-                            main: colors.grey[500],
-                            light: colors.grey[100],
-                        },
-                        background: {
-                            default: "#fcfcfc",
-                        },
+                                main: colors.primary[100],
+                            },
+                            secondary: {
+                                main: colors.greenAccent[500],
+                            },
+                            background: {
+                                default: "#E8E8F1",
+                            },
                     }),
         },
-
         typography: {
             fontFamily: ["Source Sans Pro", "sans-serif"].join(","),
             fontSize: 12,
@@ -193,13 +186,15 @@ export const themeSettings = (mode) => {
     };
 };
 
-//context for color mode
+// context for color mode
 export const ColorModeContext = createContext({
-  toggleColorMode: () => {},
+    toggleColorMode: () => {},
 });
 
 export const useMode = () => {
-  const [mode, setMode] = useState("dark");
+  // SET INITIAL STATE TO "light"
+  const [mode, setMode] = useState("light");
+
   const colorMode = useMemo(
     () => ({
       toggleColorMode: () =>
@@ -207,6 +202,7 @@ export const useMode = () => {
     }),
     []
   );
+
   const theme = useMemo(() => createTheme(themeSettings(mode)), [mode]);
   return [theme, colorMode];
-}
+};

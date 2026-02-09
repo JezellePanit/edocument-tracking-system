@@ -12,6 +12,7 @@ import { doc, getDoc } from "firebase/firestore";
 // ASSETS
 import UserLight from "../../assets/user1.png"; // Your default image
 import UserDark from "../../assets/user2.png";
+import Logo from "../../assets/CSITE_Logo.png";
 
 // ICONS
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
@@ -92,10 +93,10 @@ const TheSidebar = () => {
     return () => unsubscribe(); 
   }, [location.pathname]);
 
-  // Define the highlight color once to ensure consistency
+    // Define the highlight color once to ensure consistency
   const highlightBg = theme.palette.mode === "dark" 
-    ? colors.primary[400] 
-    : "#e0e0e0"; // Solid light grey for light mode
+      ? colors.primary[400] 
+      : "#92b3d7"; // Use your soft blue hex for the highlight row
 
   const defaultImage = theme.palette.mode === "dark" ? UserDark : UserLight;
   
@@ -138,21 +139,63 @@ const TheSidebar = () => {
     >
       <ProSidebarProvider>
         <Sidebar collapsed={isCollapsed} backgroundColor="transparent">
-          <Menu>
-            <MenuItem
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              icon={isCollapsed ? <MenuOutlinedIcon /> : undefined}
-              style={{ margin: "10px 0 20px 0", color: colors.grey[100] }}
-            >
-              {!isCollapsed && (
-                <Box display="flex" justifyContent="space-between" alignItems="center" ml="15px">
-                  <Typography variant="h3" color={colors.grey[100]}>CSITE</Typography>
-                  <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
-                    <MenuOutlinedIcon />
-                  </IconButton>
-                </Box>
-              )}
-            </MenuItem>
+<Menu>
+  {/* LOGO & TOGGLE SECTION */}
+  <Box
+    mb="20px"
+    mt="10px"
+    sx={{
+      width: "100%",
+      minHeight: "50px",
+    }}
+  >
+    {isCollapsed ? (
+      /* 1. COLLAPSED VIEW: Just the icon centered */
+      <Box display="flex" justifyContent="center" width="100%">
+        <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
+          <MenuOutlinedIcon style={{ color: colors.grey[100] }} />
+        </IconButton>
+      </Box>
+    ) : (
+      /* 2. EXPANDED VIEW: Logo centered and Icon on the same line */
+      <Box 
+        display="flex" 
+        flexDirection="row" 
+        alignItems="center"
+        justifyContent="space-between" // Pushes the items apart
+        px="15px"
+        sx={{
+          "& img:hover": {
+            transform: "scale(1.1)", 
+            filter: `drop-shadow(0 0 12px ${colors.blueAccent[400]})`,
+          },
+          "& img": {
+            transition: "all 0.3s ease-in-out",
+          }
+        }}
+      >
+        {/* Invisible Spacer - Ensures the logo stays dead-center */}
+        <Box width="40px" /> 
+
+        {/* Logo in the middle */}
+        <img
+          alt="CSITE Logo"
+          src={Logo}
+          style={{ 
+            width: "60px",
+            height: "60px", 
+            objectFit: "contain",
+            cursor: "pointer",
+          }}
+        />
+
+        {/* Toggle Button on the right */}
+        <IconButton onClick={() => setIsCollapsed(!isCollapsed)} style={{ width: "40px" }}>
+          <MenuOutlinedIcon style={{ color: colors.grey[100] }} />
+        </IconButton>
+      </Box>
+    )}
+  </Box>
 
             {/* USER PROFILE SECTION */}
             {!isCollapsed && (
