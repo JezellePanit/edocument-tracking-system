@@ -1,0 +1,104 @@
+.policy-container {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #f4f7f6;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  position: relative; 
+  z-index: 1;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.policy-card {
+  background: #ffffff;
+  max-width: 800px;
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 10;
+}
+
+.policy-header {
+  background: #0a2a66;
+  color: white;
+  padding: 30px;
+  text-align: center;
+}
+
+.policy-logo {
+  height: 80px;
+  margin-bottom: 15px;
+}
+
+.policy-header h1 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: 1px;
+}
+
+.policy-content {
+  padding: 40px;
+  color: #333;
+  line-height: 1.6;
+  max-height: 60vh;
+  overflow-y: auto; /* Adds a scrollbar inside the card */
+}
+
+.last-updated {
+  font-style: italic;
+  color: #777;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.policy-content h3 {
+  color: #0a2a66;
+  margin-top: 25px;
+  border-left: 4px solid #0a2a66;
+  padding-left: 10px;
+}
+
+.policy-content ul {
+  padding-left: 20px;
+}
+
+.policy-footer {
+  padding: 20px 40px;
+  background: #f9f9f9;
+  text-align: center;
+  border-top: 1px solid #eee;
+  margin-top: auto;
+}
+
+.back-btn {
+  background: #0a2a66;
+  color: white;
+  border: none;
+  padding: 14px 35px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(10, 42, 102, 0.2); /* Adds depth to button */
+}
+
+.back-btn:hover {
+  background: #08306b;
+  transform: translateY(-1px); /* Little lift effect */
+  box-shadow: 0 6px 12px rgba(10, 42, 102, 0.3);
+}
+
+/* Custom Scrollbar for the content */
+.policy-content::-webkit-scrollbar {
+  width: 6px;
+}
+.policy-content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}

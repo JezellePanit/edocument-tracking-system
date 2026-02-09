@@ -1,0 +1,67 @@
+/* Container and Layout */
+.categories-container {
+  margin: 20px;
+}
+
+.categories-header-text {
+  color: #0a2a66;
+  font-weight: bold !important;
+  margin-bottom: 20px;
+}
+
+.categories-top-bar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+/* Search Bar */
+.search-field {
+  width: 300px;
+  background-color: white;
+}
+
+/* Buttons */
+.create-btn {
+  background-color: #00aaff !important;
+  color: white !important;
+  padding: 10px 20px !important;
+}
+
+.edit-btn {
+  background-color: #00aaff !important;
+  color: white !important;
+}
+
+.delete-btn {
+  background-color: #d32f2f !important;
+  color: white !important;
+}
+
+/* DataGrid Styling */
+.datagrid-wrapper {
+  height: 70vh;
+}
+
+.datagrid-wrapper .MuiDataGrid-root {
+  border: none !important;
+}
+
+.datagrid-wrapper .MuiDataGrid-cell {
+  border-bottom: 1px solid #eee !important;
+}
+
+.datagrid-wrapper .MuiDataGrid-columnHeaders {
+  background-color: #f4f7f6 !important;
+  border-bottom: none !important;
+}
+
+.datagrid-wrapper .MuiDataGrid-footerContainer {
+  border-top: none !important;
+  background-color: #f4f7f6 !important;
+}
+
+.name-column--cell {
+  color: #0a2a66;
+  font-weight: 500;
+}
