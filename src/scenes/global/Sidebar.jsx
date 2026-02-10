@@ -82,7 +82,7 @@ const TheSidebar = () => {
     if (path === "/dashboard") setSelected("Dashboard");
     else if (path === "/team") setSelected("Track Document");
     else if (path === "/contacts") setSelected("Contacts Information");
-    else if (path === "/invoices") setSelected("Add Document");
+    else if (path === "/mydocument") setSelected("My Document");
     else if (path === "/receive-document") setSelected("Inbox (Receive)");
     else if (path === "/form") setSelected("Profile Form");
     else if (path === "/calendar") setSelected("Calendar");
