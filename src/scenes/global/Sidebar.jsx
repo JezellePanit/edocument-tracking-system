@@ -81,7 +81,7 @@ const TheSidebar = () => {
     if (path === "/dashboard") setSelected("Dashboard");
     else if (path === "/team") setSelected("Track Data");
     else if (path === "/contacts") setSelected("Contacts Information");
-    else if (path === "/invoices") setSelected("Add Document");
+    else if (path === "/mydocument") setSelected("My Document");
     else if (path === "/receive-document") setSelected("Inbox (Receive)");
     else if (path === "/form") setSelected("Profile Form");
     else if (path === "/calendar") setSelected("Calendar");
@@ -188,8 +188,8 @@ const TheSidebar = () => {
               </Typography>
               <Item title="Track Data" to="/team" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Contacts Information" to="/contacts" icon={<ContactsOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Add Document" to="/invoices" icon={<ReceiptOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Inbox (Receive)" to="/receive-document" icon={<MoveToInboxOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="My Document" to="/mydocument" icon={<ReceiptOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Inbox (Receive)" to="/received" icon={<MoveToInboxOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Profile Form" to="/form" icon={<PersonOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
               {/* PAGES SECTION */}

@@ -18,8 +18,9 @@ import Dashboard from "./scenes/dashboard";
 // COMMENTED OUT OR REMOVE IF FILE IS GONE:
 // import AddDocument from "./scenes/document/AddDocument"; 
 import Team from "./scenes/team";
-import Invoices from "./scenes/invoices";
+import MyDocument from "./scenes/mydocument";
 import Contacts from "./scenes/contacts";
+import Received from "./scenes/received";
 import Form from "./scenes/form";
 import Bar from "./scenes/bar";
 import Line from "./scenes/line";
@@ -62,7 +63,8 @@ function App() {
                   {/* UPDATE THIS: If AddDocument is gone, point this route to Invoices or remove it */}
                   <Route path="/team" element={<Team searchTerm={searchTerm}/>} />
                   <Route path="/contacts" element={<Contacts searchTerm={searchTerm}/>} />
-                  <Route path="/invoices" element={<Invoices searchTerm={searchTerm}/>} />
+                  <Route path="/mydocument" element={<MyDocument searchTerm={searchTerm}/>} />
+                  <Route path="/received" element={<Received searchTerm={searchTerm}/>} />
                   <Route path="/form" element={<Form searchTerm={searchTerm}/>} />
                   <Route path="/bar" element={<Bar searchTerm={searchTerm}/>} />
                   <Route path="/pie" element={<Pie searchTerm={searchTerm}/>} />
