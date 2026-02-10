@@ -105,7 +105,7 @@ const DocumentDetailModal = ({ open, onClose, docData }) => {
                 <Box display="flex" alignItems="center" gap="8px">
                   <HistoryIcon sx={{ color: colors.greenAccent[400] }} />
                   <Typography variant="h6" color={colors.greenAccent[400]} fontWeight="bold">
-                    Forwarding History ({history.length})
+                    Sent Items ({history.length})
                   </Typography>
                 </Box>
                 <ExpandMoreIcon 

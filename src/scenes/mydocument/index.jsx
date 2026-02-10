@@ -134,7 +134,6 @@ const MyDocument = ({ searchTerm = "" }) => {
             View
           </Button>
 
-{/* Only show Edit/Delete if the current user is the owner */}
           {params.row.ownerId === currentUser?.uid && (
             <>
               <Button
@@ -167,7 +166,7 @@ const MyDocument = ({ searchTerm = "" }) => {
 
     {
       field: "send",
-        headerName: "Forwarding",
+        headerName: "Send / Forward",
         flex: 1.2,
         renderCell: (params) => {
           const isSent = params.row.status === "Sent";
@@ -190,7 +189,7 @@ const MyDocument = ({ searchTerm = "" }) => {
                   fontSize: "12px" 
                 }}
               >
-                {isSent ? "Send Another" : "Forward"}
+                {isSent ? "Send Another" : "Send"}
               </Button>
             </Box>
           );

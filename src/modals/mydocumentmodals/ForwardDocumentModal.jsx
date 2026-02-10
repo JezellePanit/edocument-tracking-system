@@ -4,7 +4,6 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import SendIcon from '@mui/icons-material/Send';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'; // For success view
 import { tokens } from "../../theme";
 import { db } from "../../firebaseConfig";
 // Added arrayUnion to imports
@@ -131,11 +130,6 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
 
       setIsSuccess(true); // Trigger success view
       onForwardSuccess(); 
-      
-      // Close modal after 1.5 seconds to show the success message
-      setTimeout(() => {
-        handleClose();
-      }, 1500);
 
     } catch (error) {
       console.error("Forwarding Error:", error);
@@ -153,17 +147,43 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
         sx={{
           position: "absolute", top: "50%", left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 500, bgcolor: colors.primary[400],
+          width: 400, bgcolor: colors.primary[400],
           boxShadow: 24, p: 4, borderRadius: "8px",
           border: `1px solid ${colors.primary[500]}`
         }}
       >
         {/* SUCCESS VIEW */}
         {isSuccess ? (
-          <Box display="flex" flexDirection="column" alignItems="center" py={4}>
-            <CheckCircleOutlineIcon sx={{ fontSize: 80, color: colors.greenAccent[500], mb: 2 }} />
-            <Typography variant="h3" color={colors.grey[100]} fontWeight="bold">Success!</Typography>
-            <Typography variant="h5" color={colors.grey[300]} mt={1}>Document Forwarded Successfully</Typography>
+          /* SUCCESS VIEW - COPIED DESIGN FROM DOCUMENTMODAL */
+          <Box sx={{ textAlign: 'center', py: 2  }}>
+            <Box 
+              display="flex" justifyContent="center" alignItems="center" mb={2}
+              sx={{ 
+                width: 60, height: 60, bgcolor: '#e8f5e9', 
+                borderRadius: '50%', margin: '0 auto 20px' 
+              }}
+            >
+              <Typography sx={{ fontSize: 40, color: '#4caf50' }}>✓</Typography>
+            </Box>
+            
+            <Typography variant="h5" fontWeight="bold" gutterBottom color={colors.grey[100]}>
+              Forward Successful!
+            </Typography>
+            
+            <Typography variant="body1" color={colors.grey[300]} mb={4}>
+              The document has been forwarded to <strong>{targetDept}</strong>.
+            </Typography>
+
+            <Box display="flex" justifyContent="center">
+                <Button 
+                    variant="contained" 
+                    color="success" 
+                    onClick={handleClose}
+                    sx={{ px: 4, borderRadius: '8px', fontWeight: 'bold' }}
+                >
+                    Done
+                </Button>
+            </Box>
           </Box>
         ) : (
           /* STANDARD FORM VIEW */

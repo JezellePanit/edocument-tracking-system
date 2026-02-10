@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, useTheme, Typography } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { db, auth } from "../../firebaseConfig"; // Ensure auth is imported
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -9,7 +9,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { Button } from "@mui/material";
 import DocumentDetailsModal from "../../modals/mydocumentmodals/DocumentDetailsModal";
 
-const Received = () => {
+const Inbox = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [documents, setDocuments] = useState([]);
@@ -135,4 +135,4 @@ const Received = () => {
   );
 };
 
-export default Received;
+export default Inbox;

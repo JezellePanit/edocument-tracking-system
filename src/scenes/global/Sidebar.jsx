@@ -16,10 +16,9 @@ import Logo from "../../assets/CSITE_Logo.png";
 
 // ICONS
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
-import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
-import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import HelpOutlinedIcon from "@mui/icons-material/HelpOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
@@ -27,6 +26,7 @@ import PieChartOutlinedIcon from "@mui/icons-material/PieChartOutlined";
 import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import MoveToInboxOutlinedIcon from "@mui/icons-material/MoveToInboxOutlined";
+import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -82,8 +82,8 @@ const TheSidebar = () => {
     else if (path === "/team") setSelected("Track Data");
     else if (path === "/contacts") setSelected("Contacts Information");
     else if (path === "/mydocument") setSelected("My Document");
-    else if (path === "/receive-document") setSelected("Inbox (Receive)");
-    else if (path === "/form") setSelected("Profile Form");
+    else if (path === "/inbox") setSelected("Inbox");
+    else if (path === "/outbox") setSelected("Outbox");
     else if (path === "/calendar") setSelected("Calendar");
     else if (path === "/faq") setSelected("FAQ Page");
     else if (path === "/bar") setSelected("Bar Chart");
@@ -186,18 +186,16 @@ const TheSidebar = () => {
               <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
                 {isCollapsed ? "Ops" : "Operations"}
               </Typography>
-              <Item title="Track Data" to="/team" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Contacts Information" to="/contacts" icon={<ContactsOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="My Document" to="/mydocument" icon={<ReceiptOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Inbox (Receive)" to="/received" icon={<MoveToInboxOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Profile Form" to="/form" icon={<PersonOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Track Document" to="/team" icon={<LocationOnOutlinedIcon/>} selected={selected} setSelected={setSelected} />
+              <Item title="My Document" to="/mydocument" icon={<ArticleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Inbox" to="/inbox" icon={<MoveToInboxOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Outbox" to="/outbox" icon={<OutboxOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
               {/* PAGES SECTION */}
               <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
-                {isCollapsed ? "Pages" : "Pages"}
+                {isCollapsed ? "Lib" : "Library"}
               </Typography>
-              <Item title="Calendar" to="/calendar" icon={<CalendarTodayOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="FAQ Page" to="/faq" icon={<HelpOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Archive" to="/contacts" icon={<ContactsOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
               {/* CHARTS SECTION */}
               <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
@@ -206,6 +204,8 @@ const TheSidebar = () => {
               <Item title="Bar Chart" to="/bar" icon={<BarChartOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Pie Chart" to="/pie" icon={<PieChartOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Line Chart" to="/line" icon={<TimelineOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Calendar" to="/calendar" icon={<CalendarTodayOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="FAQ Page" to="/faq" icon={<HelpOutlinedIcon />} selected={selected} setSelected={setSelected} />
             </Box>
           </Menu>
         </Sidebar>

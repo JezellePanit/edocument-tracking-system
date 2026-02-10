@@ -20,8 +20,8 @@ import Dashboard from "./scenes/dashboard";
 import Team from "./scenes/team";
 import MyDocument from "./scenes/mydocument";
 import Contacts from "./scenes/contacts";
-import Received from "./scenes/received";
-import Form from "./scenes/form";
+import Inbox from "./scenes/inbox";
+import Outbox from "./scenes/outbox";
 import Bar from "./scenes/bar";
 import Line from "./scenes/line";
 import Pie from "./scenes/pie";
@@ -60,12 +60,11 @@ function App() {
                 <Topbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
                 <Routes>
                   <Route path="/dashboard" element={<Dashboard />} />
-                  {/* UPDATE THIS: If AddDocument is gone, point this route to Invoices or remove it */}
                   <Route path="/team" element={<Team searchTerm={searchTerm}/>} />
                   <Route path="/contacts" element={<Contacts searchTerm={searchTerm}/>} />
                   <Route path="/mydocument" element={<MyDocument searchTerm={searchTerm}/>} />
-                  <Route path="/received" element={<Received searchTerm={searchTerm}/>} />
-                  <Route path="/form" element={<Form searchTerm={searchTerm}/>} />
+                  <Route path="/inbox" element={<Inbox searchTerm={searchTerm}/>} />
+                  <Route path="/outbox" element={<Outbox searchTerm={searchTerm}/>} />
                   <Route path="/bar" element={<Bar searchTerm={searchTerm}/>} />
                   <Route path="/pie" element={<Pie searchTerm={searchTerm}/>} />
                   <Route path="/line" element={<Line searchTerm={searchTerm}/>} />
