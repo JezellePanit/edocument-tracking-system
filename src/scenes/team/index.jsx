@@ -12,7 +12,6 @@ import {
   TableContainer,
   Tabs,
   Tab,
-  Divider,
   Stack,
   useTheme} from "@mui/material";
 
@@ -29,7 +28,6 @@ import {
 } from "@mui/lab";
 
 // ======== ICONS
-import SearchIcon from '@mui/icons-material/Search';
 import PrintIcon from '@mui/icons-material/Print';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import AddBoxIcon from '@mui/icons-material/AddBox';
