@@ -1,27 +1,25 @@
 import React, { useState, useEffect } from "react";
-// Removed IconButton from the list below to fix Line 2:62 warning
-import { Box, Button, TextField, InputAdornment, Typography } from "@mui/material";
+import { Box, Button, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { supabase } from "../../supabaseClient";
 import { db } from "../../firebaseConfig";
+import Header from "../../components/Header";
+import { tokens } from "../../theme";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import AddIcon from "@mui/icons-material/Add";
-import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from '@mui/icons-material/Visibility'; 
 
-// Check these paths! 
-// If DocumentModal.jsx is in the SAME folder as this file, use "./DocumentModal"
 import DocumentModal from "../document/DocumentModal";
-// If AddDocument.css is one folder UP, keep it as is. If it's in THIS folder, use "./AddDocument.css"
 import "./index.css";
 
-const Invoices = () => {
+const Invoices = ({ searchTerm = "" }) => {
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [editDoc, setEditDoc] = useState(null);
-  const [searchText, setSearchText] = useState("");
 
   const handleEdit = (document) => {
     console.log("Editing document:", document);
@@ -89,10 +87,15 @@ const Invoices = () => {
     fetchDocuments();
   }, []);
 
-  const filteredRows = documents.filter((doc) =>
-    doc.title?.toLowerCase().includes(searchText.toLowerCase()) ||
-    doc.categoryName?.toLowerCase().includes(searchText.toLowerCase()) 
-  );
+  console.log("Current Search Term:", searchTerm);
+  const filteredRows = documents.filter((doc) => {
+    const search = (searchTerm || "").toLowerCase();
+    
+    return (
+      doc.title?.toLowerCase().includes(search) ||
+      doc.categoryName?.toLowerCase().includes(search)
+    );
+  });
 
   const columns = [
     { field: "title", headerName: "Document Title", flex: 1.5 },
@@ -148,40 +151,60 @@ const Invoices = () => {
     setEditDoc(null); 
   };
 
-  return (
-    <Box className="categories-container" sx={{ display: 'flex', flexDirection: 'column', height: '85vh' }}>
-      <Typography variant="h4" className="categories-header-text" sx={{ mb: 2 }}>
-        Manage Documents
-      </Typography>
-
+return (
+    <Box m="20px">
+      <Header title="DOCUMENTS" subtitle="Managing Documents" />
       <Box className="categories-top-bar" sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }}>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setIsModalOpen(true)}
-          className="create-btn"
+          sx={{
+            backgroundColor: colors.blueAccent[700],
+            color: colors.grey[100],
+            fontSize: "14px",
+            fontWeight: "bold",
+            padding: "10px 20px",
+            "&:hover": {
+              backgroundColor: colors.blueAccent[800],
+            },
+          }}
         >
           Add New Document
         </Button>
-        
-        <TextField
-          variant="outlined"
-          placeholder="Search by title or category..."
-          size="small"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-        />
       </Box>
 
-      <Box className="datagrid-wrapper" sx={{ height: 'calc(100vh - 250px)', width: '100%', bgcolor: 'white' }}>
+      <Box
+        m="40px 0 0 0"
+        height="67vh"
+        sx={{
+          "& .MuiDataGrid-root": {
+            border: "none",
+          },
+          "& .MuiDataGrid-cell": {
+            borderBottom: "none",
+          },
+          "& .MuiDataGrid-columnHeaders": {
+            backgroundColor: colors.blueAccent[700],
+            borderBottom: "none",
+          },
+          "& .MuiDataGrid-virtualScroller": {
+            backgroundColor: colors.primary[400],
+          },
+          "& .MuiDataGrid-footerContainer": {
+            borderTop: "none",
+            backgroundColor: colors.blueAccent[700],
+          },
+          "& .MuiTablePagination-root": {
+            color: colors.grey[100], // Ensures the footer text is visible
+          },
+          "& .MuiCheckbox-root": {
+            color: `${colors.greenAccent[200]} !important`,
+          },
+        }}
+      >
         <DataGrid
+          key={searchTerm}
           rows={filteredRows}
           columns={columns}
           pageSize={10}

@@ -12,7 +12,7 @@ import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 
 
-const Topbar = () => {
+const Topbar = ({ searchTerm, setSearchTerm }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const colorMode = useContext(ColorModeContext);
@@ -21,13 +21,17 @@ const Topbar = () => {
     <Box display = "flex" justifyContent="space-between" p={2}>
       {/* SEARCH BAR */}
       <Box
-        display = "flex"
-        backgroundColor = {colors.primary[400]}
+        display="flex"
+        backgroundColor={colors.primary[400]}
         borderRadius="3px"
       >
-        <InputBase sx={{ ml: 2, flex: 1 }} placeholder="Search" />
-        <IconButton type="button" sx = {{ p: 1 }}> <SearchIcon/> </IconButton>
-
+        <InputBase 
+          sx={{ ml: 2, flex: 1 }} 
+          placeholder="Search" 
+          value={searchTerm} // Use prop
+          onChange={(e) => setSearchTerm(e.target.value)} // Use prop function
+        />
+        <IconButton type="button" sx={{ p: 1 }}> <SearchIcon/> </IconButton>
       </Box>
       
       {/* ICONS */}
