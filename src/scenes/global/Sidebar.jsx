@@ -16,10 +16,10 @@ import Logo from "../../assets/CSITE_Logo.png";
 
 // ICONS
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
-import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
-import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
-import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
+import FmdGoodOutlinedIcon from '@mui/icons-material/FmdGoodOutlined';
+import NotificationsActiveOutlinedIcon from '@mui/icons-material/NotificationsActiveOutlined';
+import CreateNewFolderOutlinedIcon from '@mui/icons-material/CreateNewFolderOutlined';
+import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import HelpOutlinedIcon from "@mui/icons-material/HelpOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
@@ -31,6 +31,7 @@ import MoveToInboxOutlinedIcon from "@mui/icons-material/MoveToInboxOutlined";
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+
   return (
     <MenuItem
       active={selected === title}
@@ -79,7 +80,7 @@ const TheSidebar = () => {
     // Auto-select menu item based on current URL
     const path = location.pathname;
     if (path === "/dashboard") setSelected("Dashboard");
-    else if (path === "/team") setSelected("Track Data");
+    else if (path === "/team") setSelected("Track Document");
     else if (path === "/contacts") setSelected("Contacts Information");
     else if (path === "/invoices") setSelected("Add Document");
     else if (path === "/receive-document") setSelected("Inbox (Receive)");
@@ -107,6 +108,7 @@ const TheSidebar = () => {
         position: "sticky",
         top: 0,
         zIndex: 100,
+
         "& .ps-sidebar-root": { height: "100% !important", border: "none" },
         "& .ps-sidebar-container": {
           height: "100vh !important",
@@ -115,6 +117,7 @@ const TheSidebar = () => {
             : `#f2f2f2 !important`, 
           borderRight: theme.palette.mode === "dark" ? "none" : `1px solid ${colors.grey[800]}`,
         },
+
         "& .ps-menu-button": {
           padding: isCollapsed ? "5px 20px !important" : "5px 35px 5px 20px !important",
           backgroundColor: "transparent !important",
@@ -130,28 +133,30 @@ const TheSidebar = () => {
       }}
     >
       <ProSidebarProvider>
-        <Sidebar collapsed={isCollapsed} backgroundColor="transparent">
+        <Sidebar collapsed = {isCollapsed} backgroundColor = "transparent">
           <Menu>
             {/* LOGO & TOGGLE SECTION */}
-            <Box mb="20px" mt="10px" sx={{ width: "100%", minHeight: "50px" }}>
+            <Box mb = "20px" mt = "10px" sx = {{ width: "100%", minHeight: "50px" }}>
               {isCollapsed ? (
-                <Box display="flex" justifyContent="center" width="100%">
-                  <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
-                    <MenuOutlinedIcon style={{ color: colors.grey[100] }} />
+
+                <Box display = "flex" justifyContent = "center" width = "100%">
+                  <IconButton onClick = {() => setIsCollapsed(!isCollapsed)}>
+                    <MenuOutlinedIcon style = {{ color: colors.grey[100] }} />
                   </IconButton>
                 </Box>
+
               ) : (
-                <Box display="flex" flexDirection="row" alignItems="center" justifyContent="space-between" px="15px">
-                  <Box width="40px" /> 
-                  <img alt="Logo" src={Logo} style={{ width: "60px", height: "60px", objectFit: "contain", cursor: "pointer" }} />
-                  <IconButton onClick={() => setIsCollapsed(!isCollapsed)}>
-                    <MenuOutlinedIcon style={{ color: colors.grey[100] }} />
+                <Box display = "flex" flexDirection = "row" alignItems = "center" justifyContent = "space-between" px = "15px">
+                  <Box width = "40px" /> 
+                  <img alt = "Logo" src = {Logo} style = {{ width: "60px", height: "60px", objectFit: "contain", cursor: "pointer" }} />
+                  <IconButton onClick = {() => setIsCollapsed(!isCollapsed)}>
+                    <MenuOutlinedIcon style = {{ color: colors.grey[100] }} />
                   </IconButton>
                 </Box>
               )}
             </Box>
 
-            {/* USER PROFILE SECTION */}
+            {/* =============== USER PROFILE SECTION */}
             {!isCollapsed && (
               <Box mb="25px" textAlign="center">
                 <Box display="flex" justifyContent="center" alignItems="center">
@@ -163,49 +168,148 @@ const TheSidebar = () => {
                     style={{ cursor: "pointer", borderRadius: "50%", objectFit: "cover" }}
                   />
                 </Box>
-                <Typography variant="h4" color={colors.grey[100]} fontWeight="bold" sx={{ m: "10px 0 0 0" }}>
+
+                <Typography 
+                  variant="h4" 
+                  color={colors.grey[100]} 
+                  fontWeight="bold" 
+                  sx={{ m: "10px 0 0 0" }}>
                   {userProfile.username}
                 </Typography>
-                <Typography variant="h6" color={colors.greenAccent[500]} sx={{ fontSize: "11px" }}>
+
+                <Typography 
+                  variant="h6" 
+                  color={colors.greenAccent[500]} 
+                  sx={{ fontSize: "11px" }}>
                   {userProfile.email}
                 </Typography>
+
               </Box>
             )}
 
             <Box paddingLeft={isCollapsed ? undefined : "5%"}>
-              {/* DASHBOARD LINK */}
+
+              {/* =============== DASHBOARD LINK */}
+              <Typography
+                variant = "h6"
+                color = {colors.grey[300]}
+                fontWeight = "bold"
+                sx = {{ m: "15px 0 5px 20px" }}
+              > {isCollapsed ? "Main" : "Main"} </Typography>
+
               <Item 
-                title="Dashboard" 
-                to="/dashboard" 
-                icon={<HomeOutlinedIcon />} 
-                selected={selected} 
-                setSelected={setSelected} 
+                title = "Dashboard" 
+                to = "/dashboard" 
+                icon = {<HomeOutlinedIcon />} 
+                selected = {selected} 
+                setSelected = {setSelected} 
               />
 
-              {/* OPERATIONS SECTION */}
-              <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
-                {isCollapsed ? "Ops" : "Operations"}
-              </Typography>
-              <Item title="Track Data" to="/team" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Contacts Information" to="/contacts" icon={<ContactsOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Add Document" to="/invoices" icon={<ReceiptOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Inbox (Receive)" to="/receive-document" icon={<MoveToInboxOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Profile Form" to="/form" icon={<PersonOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item 
+                title = "Notification" 
+                to = "/contacts" 
+                icon = {<NotificationsActiveOutlinedIcon />} 
+                selected = {selected} 
+                setSelected = {setSelected}
+              />
 
-              {/* PAGES SECTION */}
-              <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
-                {isCollapsed ? "Pages" : "Pages"}
-              </Typography>
-              <Item title="Calendar" to="/calendar" icon={<CalendarTodayOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="FAQ Page" to="/faq" icon={<HelpOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              {/* ========================= OPERATIONS SECTION */}
+              <Typography
+                variant = "h6"
+                color = {colors.grey[300]}
+                fontWeight = "bold"
+                sx = {{ m: "15px 0 5px 20px" }}
+              > {isCollapsed ? "Ops" : "Operations"} </Typography>
 
-              {/* CHARTS SECTION */}
-              <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
-                {isCollapsed ? "Charts" : "Charts"}
-              </Typography>
-              <Item title="Bar Chart" to="/bar" icon={<BarChartOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Pie Chart" to="/pie" icon={<PieChartOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Line Chart" to="/line" icon={<TimelineOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item 
+                title = "Track Document" 
+                to = "/team" 
+                icon = {<FmdGoodOutlinedIcon />} 
+                selected = {selected} 
+                setSelected = {setSelected} 
+              />
+
+
+              <Item 
+                title = "Add Document" 
+                to = "/invoices" 
+                icon = {<CreateNewFolderOutlinedIcon/>} 
+                selected = {selected} 
+                setSelected = {setSelected} 
+              />
+
+              {/* ================ */}
+              <Item 
+                title = "Inbox (Receive)" 
+                to = "/receive-document" 
+                icon = {<MoveToInboxOutlinedIcon />} 
+                selected = {selected} 
+                setSelected = {setSelected}
+              />
+               {/* ================ */}
+
+              <Item 
+                title = "Outbox (Release)" 
+                to = "/form" 
+                icon = {<OutboxOutlinedIcon/>} 
+                selected = {selected}
+                setSelected = {setSelected} />
+
+              {/* ============================ PAGES SECTION */}
+              <Typography 
+                variant = "h6" 
+                color = {colors.grey[300]} 
+                fontWeight = "bold" 
+                sx = {{ m: "15px 0 5px 20px" }}
+              > {isCollapsed ? "Pages" : "Pages"} </Typography>
+
+              <Item 
+                title = "Calendar" 
+                to = "/calendar" 
+                icon = {<CalendarTodayOutlinedIcon />} 
+                selected = {selected} 
+                setSelected = {setSelected}
+              />
+
+              <Item 
+                title = "FAQ Page" 
+                to = "/faq" 
+                icon = {<HelpOutlinedIcon/>} 
+                selected = {selected} 
+                setSelected = {setSelected} 
+              />
+
+              {/* ========================= CHARTS SECTION */}
+              <Typography 
+                variant = "h6" 
+                color = {colors.grey[300]} 
+                fontWeight = "bold" 
+                sx = {{ m: "15px 0 5px 20px" }}
+              > {isCollapsed ? "Charts" : "Charts"} </Typography>
+
+              <Item 
+                title = "Bar Chart" 
+                to = "/bar" 
+                icon = {<BarChartOutlinedIcon />} 
+                selected = {selected} 
+                setSelected = {setSelected}
+              />
+
+              <Item 
+                title = "Pie Chart" 
+                to = "/pie" 
+                icon = {<PieChartOutlinedIcon />} 
+                selected = {selected} 
+                setSelected = {setSelected}
+              />
+
+              <Item 
+                title = "Line Chart" 
+                to = "/line" 
+                icon = {<TimelineOutlinedIcon />} 
+                selected = {selected} 
+                setSelected = {setSelected} 
+              />
             </Box>
           </Menu>
         </Sidebar>
