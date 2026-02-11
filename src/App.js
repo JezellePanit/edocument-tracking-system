@@ -4,10 +4,6 @@ import { ColorModeContext, useMode } from "./theme";
 import { ProSidebarProvider } from "react-pro-sidebar";
 import React, { useState } from "react";
 
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebaseConfig";
-import { useNavigate } from "react-router-dom";
-
 /* ===== PUBLIC SCENES ===== */
 import LoginSignup from "./scenes/login/LoginSignup";
 import Terms from "./scenes/policies/terms";
@@ -41,18 +37,7 @@ function App() {
   const isPublicPage =
     location.pathname === "/" ||
     location.pathname === "/policies/Terms" ||
-    location.pathname === "/policies/PrivacyPolicy";
-
-useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      // If no user is found, force them to the Login page
-      navigate("/login");
-    }
-  });
-
-  return () => unsubscribe(); // Cleanup
-}, [navigate]);    
+    location.pathname === "/policies/PrivacyPolicy";  
 
   return (
     <ProSidebarProvider>

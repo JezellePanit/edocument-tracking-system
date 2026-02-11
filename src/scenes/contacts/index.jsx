@@ -4,7 +4,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import ArchiveDetailsModal from "../../modals/archivemodals/ArchiveDetailsModal"; // The new separate modal
+import ArchiveDetailsModal from "../../modals/archivemodals/ArchiveDetailsModal";
 
 const Contacts = () => {
   const theme = useTheme();
