@@ -1,10 +1,11 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import logo from "../../assets/whitelogo.png";
 import "./terms.css";
 
 const Terms = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <div className="policy-container">
@@ -50,7 +51,7 @@ const Terms = () => {
         </section>
 
         <footer className="policy-footer">
-          <button className="back-btn" onClick={() => navigate("/", { state: { fromSignUp: true } })}>
+          <button className="back-btn" onClick={() => navigate("/", { state: { fromSignUp: true, savedData: location.state.savedData } })}>
             I Understand & Go Back
           </button>
         </footer>

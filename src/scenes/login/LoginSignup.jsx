@@ -183,14 +183,23 @@ const LoginSignup = () => {
 
   // Switch between modes
   const switchMode = (newMode) => {
+    // Only clear the form if we are toggling between different auth states
+    // (e.g., switching from login to signup or vice versa)
+    if (mode !== newMode) {
+      setFormData({
+        username: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        department: "",
+      });
+      // Reset validation states too
+      setUsernameAvailable(null);
+      setSignUpEmailExists(null);
+      setPasswordStrength("");
+    }
+    
     setMode(newMode);
-    setFormData({
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      department: "",
-    });
     setShowPassword(false);
     setShowConfirmPassword(false);
   };
@@ -299,6 +308,9 @@ const LoginSignup = () => {
   useEffect(() => {
     if (location.state?.fromSignUp) {
       setMode("signup");
+      if (location.state.savedData) {
+        setFormData(location.state.savedData);
+      }
       // Clear the state so it doesn't stay on signup forever if they refresh
       window.history.replaceState({}, document.title);
     }
@@ -537,11 +549,11 @@ const LoginSignup = () => {
 
     <p className="policy-text">
       By clicking Create New Account, you agree to our{" "}
-      <span className="policy-link" onClick={() => navigate("../policies/Terms", { state: { fromSignUp: true } })}>
+      <span className="policy-link" onClick={() => navigate("../policies/Terms", { state: { fromSignUp: true, savedData: formData } })}>
         Terms
       </span>{" "}
       and{" "}
-      <span className="policy-link" onClick={() => navigate("../policies/PrivacyPolicy", { state: { fromSignUp: true } })}>
+      <span className="policy-link" onClick={() => navigate("../policies/PrivacyPolicy", { state: { fromSignUp: true, savedData: formData } })}>
         Privacy Policy
       </span>.
     </p>

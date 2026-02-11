@@ -112,6 +112,13 @@ const MyDocument = ({ searchTerm = "" }) => {
 
   // Define columns for DataGrid
   const columns = [
+  { field: "documentId", headerName: "Document ID", flex: 1,
+    renderCell: (params) => (
+      <Box fontWeight="bold" color={colors.greenAccent[400]}>
+        {params.value || "PENDING"}
+      </Box>
+    )
+  },  
     { field: "title", headerName: "Document Title", flex: 1.5 },
     { field: "categoryName", headerName: "Category", flex: 1 },
     { field: "displayDate", headerName: "Date & Time Uploaded", flex: 1.2 },

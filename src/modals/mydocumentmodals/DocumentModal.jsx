@@ -6,7 +6,7 @@ import {
 
 import { supabase } from "../../supabaseClient";
 import { db, auth } from "../../firebaseConfig"; 
-import { collection, addDoc, doc, getDoc } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc, getDocs, serverTimestamp } from "firebase/firestore";
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import "./DocumentModal.css";
@@ -94,10 +94,35 @@ export const DocumentModal = ({ open, onClose, onDocumentAdded }) => {
     setFormData(prev => ({ ...prev, docType: uniqueExtensions.join(", ") }));
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
+      const currentYear = new Date().getFullYear();
+
+      // 1. Create a Department Prefix (e.g., "it" becomes "IT", "finance" becomes "FIN")
+      // You can customize these shortcuts
+      const deptShortcuts = {
+        executive: "EXEC",
+        administrative: "ADM",
+        records: "REC",
+        procurement: "PROC",
+        finance: "FIN",
+        training: "TRG",
+        assessment: "ASMT",
+        it: "IT"
+      };
+      const prefix = deptShortcuts[userDept] || "DOC";
+
+      // 2. Count existing documents to get the next sequence number
+      const docsRef = collection(db, "documents");
+      const snapshot = await getDocs(docsRef);
+      const nextNumber = snapshot.size + 1;
+
+      // 3. Generate the Tracking ID (e.g., ADM-2026-00001)
+      const generatedTrackingId = `${prefix}-${currentYear}-${nextNumber.toString().padStart(5, '0')}`;
+
+      // 4. Handle File Uploads (Your existing Supabase logic)
       const uploadedFileUrls = [];
       for (const file of files) {
         const fileExt = file.name.split('.').pop();
@@ -117,8 +142,10 @@ export const DocumentModal = ({ open, onClose, onDocumentAdded }) => {
         uploadedFileUrls.push({ name: file.name, url: publicUrl });
       }
 
+      // 5. Save to Firestore
       await addDoc(collection(db, "documents"), {
         ...formData,
+        documentId: generatedTrackingId,
         categoryName: "Uncategorized",
         originDepartment: userDept,
         ownerId: auth.currentUser.uid,
@@ -128,7 +155,7 @@ export const DocumentModal = ({ open, onClose, onDocumentAdded }) => {
         files: uploadedFileUrls,
         status: "Draft",
         uploadDate: new Date().toLocaleDateString(),
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
       });
 
       setShowSuccess(true);
