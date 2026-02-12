@@ -100,6 +100,8 @@ const TheSidebar = () => {
     else if (path === "/bar") setSelected("Bar Chart");
     else if (path === "/department") setSelected("Department");
     else if (path === "/line") setSelected("Line Chart");
+    else if (path === "/tracker") setSelected("Document Tracker");
+    else if (path === "/leaverequest") setSelected("Leave Application");
 
     return () => unsubscribe();
   }, [location.pathname]);
@@ -225,6 +227,7 @@ const TheSidebar = () => {
                 </Typography>
                 <Item title="Leave Management" to="/inbox" icon={<EventNoteOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="Document Management" to="/mydocument" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
+                <Item title="Document Tracker" to="/tracker" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
                   {isCollapsed ? "Lib" : "Library"}
@@ -246,7 +249,7 @@ const TheSidebar = () => {
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
                   {isCollapsed ? "Ops" : "Operations"}
                 </Typography>
-                <Item title="Leave Application" to="/leave-apply" icon={<CalendarTodayOutlinedIcon />} selected={selected} setSelected={setSelected} />
+                <Item title="Leave Application" to="/leaverequest" icon={<CalendarTodayOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="My Documents" to="/mydocument" icon={<FileUploadOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
                 {/* c. Support */}
