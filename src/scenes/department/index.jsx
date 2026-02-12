@@ -117,7 +117,7 @@ const Department = () => {
                     onClick={() => setSelectedDept(deptName)}
                     sx={{ 
                       height: '320px',
-                      width: '450px',
+                      width: '350px',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -130,9 +130,8 @@ const Department = () => {
                       p: 2
                     }}
                   >
-                    <Avatar sx={{ width: 80, height: 80, mb: 2, bgcolor: theme.palette.secondary.main }}>
-                      {/* Show count in avatar if you want, or keep first letter: {deptName[0]} */}
-                      {count}
+                    <Avatar sx={{ width: 80, height: 80, mb: 2, bgcolor: colors.grey[100] }}>
+                      {deptName[0]}
                     </Avatar>
                     <CardContent sx={{ textAlign: 'center' }}>
                       <Typography variant="h5" fontWeight="600" color={colors.grey[100]}>

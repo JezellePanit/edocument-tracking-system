@@ -28,6 +28,8 @@ import FAQ from "./scenes/faq";
 import Calendar from "./scenes/calendar";
 import Department from "./scenes/department";
 import LeaveManagement from "./scenes/leavemanagement/Index";
+import Tracker from "./scenes/tracker";
+import LeaveRequestForm from "./scenes/leaverequest";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -72,6 +74,8 @@ function App() {
                   <Route path="/calendar" element={<Calendar searchTerm={searchTerm}/>} />
                   <Route path="/department" element={<Department searchTerm={searchTerm}/>} />
                   <Route path="/leavemanagement" element={<LeaveManagement searchTerm={searchTerm}/>} />
+                  <Route path="/tracker" element={<Tracker searchTerm={searchTerm}/>} />
+                  <Route path="/leaverequest" element={<LeaveRequestForm searchTerm={searchTerm}/>} />
                 </Routes>
               </main>
             </div>
