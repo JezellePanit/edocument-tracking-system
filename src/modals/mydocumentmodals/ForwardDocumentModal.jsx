@@ -39,8 +39,10 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
   
   const [targetDept, setTargetDept] = useState("");
   const [targetUser, setTargetUser] = useState("");
+  const [recipientEmail, setRecipientEmail] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [customCategory, setCustomCategory] = useState("");
+  const [remarks, setRemarks] = useState("");
   const [deptUsers, setDeptUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false); // New Success State
@@ -49,8 +51,10 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
   const resetForm = () => {
     setTargetDept("");
     setTargetUser("");
+    setRecipientEmail("");
     setSelectedCategory("");
     setCustomCategory("");
+    setRemarks("");
     setDeptUsers([]);
     setIsSuccess(false);
   };
@@ -111,6 +115,9 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
       const selectedUserObj = deptUsers.find(u => u.id === targetUser || u.uid === targetUser);
       const docRef = doc(db, "documents", docData.id);
       const emailToSave = selectedUserObj?.email || "Unknown Email";
+
+      setRecipientEmail(emailToSave);
+
       const timestamp = new Date();
 
       await updateDoc(docRef, {
@@ -120,11 +127,13 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
         recipientName: emailToSave,
         status: "Sent",           
         lastForwardedAt: timestamp,
+        remarks: remarks,
         // CHECKED: History array logic using arrayUnion
         forwardingHistory: arrayUnion({
           recipientName: emailToSave,
           submittedTo: DEPARTMENT_NAMES[targetDept] || targetDept,
-          lastForwardedAt: timestamp
+          lastForwardedAt: timestamp,
+          remarks: remarks,
         })
       });
 
@@ -147,7 +156,7 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
         sx={{
           position: "absolute", top: "50%", left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 400, bgcolor: colors.primary[400],
+          width: 450, bgcolor: colors.primary[400],
           boxShadow: 24, p: 4, borderRadius: "8px",
           border: `1px solid ${colors.primary[500]}`
         }}
@@ -167,11 +176,11 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
             </Box>
             
             <Typography variant="h5" fontWeight="bold" gutterBottom color={colors.grey[100]}>
-              Forward Successful!
+              Successfully Sent!
             </Typography>
             
             <Typography variant="body1" color={colors.grey[300]} mb={4}>
-              The document has been forwarded to <strong>{targetDept}</strong>.
+              The document has been sent to <strong>{recipientEmail}</strong> of <strong>{DEPARTMENT_NAMES[targetDept]}</strong>.
             </Typography>
 
             <Box display="flex" justifyContent="center">
@@ -189,7 +198,7 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
           /* STANDARD FORM VIEW */
           <>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h4" color={colors.grey[100]} fontWeight="bold">Forward Document</Typography>
+              <Typography variant="h4" color={colors.grey[100]} fontWeight="bold">Send Document</Typography>
               <IconButton onClick={handleClose}><CloseIcon sx={{ color: colors.grey[100] }} /></IconButton>
             </Box>
 
@@ -197,7 +206,7 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
 
             <Box display="flex" flexDirection="column" gap="20px">
               <Typography variant="h6" color={colors.greenAccent[400]}>
-                Forwarding: <strong>{docData.title}</strong>
+                Sending: <strong>{docData.title}</strong>
               </Typography>
 
               {/* 1. Department Selection */}
@@ -263,6 +272,18 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
                       sx={{ mt: -1 }}
                     />
                   )}
+
+                  {/* 5. Remarks */}
+                  <TextField
+                    label="Message / Remarks"
+                    placeholder="Add instructions or notes for the recipient..."
+                    fullWidth
+                    multiline
+                    rows={3}
+                    value={remarks}
+                    onChange={(e) => setRemarks(e.target.value)}
+                    sx={{ mt: 1 }}
+                  />
                 </>
               )}
 
@@ -279,7 +300,7 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
                   onClick={handleForward}
                   sx={{ backgroundColor: colors.blueAccent[700], color: colors.grey[100], padding: "10px 20px" }}
                 >
-                  {loading ? "Forwarding..." : "Confirm Forward"}
+                  {loading ? "Sending..." : "Confirm Send"}
                 </Button>
               </Box>
             </Box>

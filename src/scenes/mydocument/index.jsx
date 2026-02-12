@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Box, Button, useTheme } from "@mui/material";
+import { Box, Button, useTheme, Chip } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { db, auth } from "../../firebaseConfig";
 import Header from "../../components/Header";
@@ -106,7 +106,8 @@ const MyDocument = ({ searchTerm = "" }) => {
     const search = (searchTerm || "").toLowerCase();
     return (
       doc.title?.toLowerCase().includes(search) ||
-      doc.categoryName?.toLowerCase().includes(search)
+      doc.priority?.toLowerCase().includes(search) ||
+      doc.documentId?.toLowerCase().includes(search)
     );
   });
 
@@ -120,8 +121,55 @@ const MyDocument = ({ searchTerm = "" }) => {
     )
   },  
     { field: "title", headerName: "Document Title", flex: 1.5 },
-    { field: "categoryName", headerName: "Category", flex: 1 },
-    { field: "displayDate", headerName: "Date & Time Uploaded", flex: 1.2 },
+      { field: "displayDate", headerName: "Date & Time Uploaded", flex: 1.2 },
+
+    { 
+      field: "priority", 
+      headerName: "Priority", 
+      flex: 1,
+      renderCell: (params) => {
+        const priority = params.value || "Normal";
+        
+        // Define color mapping for the 4 levels
+        let chipColor;
+        switch(priority) {
+          case "Critical":
+            chipColor = colors.redAccent[500]; // Bright Red
+            break;
+          case "Urgent":
+            chipColor = colors.orangeAccent ? colors.orangeAccent[600] : "#ef6c00";
+            break;
+          case "Low":
+            chipColor = colors.greenAccent[600]; // Green
+            break;
+          default: // Normal
+            chipColor = colors.blueAccent[700]; // Blue
+        }
+
+        return (
+          <Chip
+            label={priority}
+            size="small"
+            sx={{
+              backgroundColor: chipColor,
+              color: colors.grey[100],
+              fontWeight: "bold",
+              borderRadius: "4px",
+              minWidth: "80px",
+              // Add a pulse effect for Critical items to make them impossible to miss
+              animation: priority === "Critical" ? "pulse 2s infinite" : "none",
+              "@keyframes pulse": {
+                "0%": { opacity: 1 },
+                "50%": { opacity: 0.7 },
+                "100%": { opacity: 1 },
+              }
+            }}
+          />
+        );
+      }
+    },
+
+
 
     {
       field: "actions",

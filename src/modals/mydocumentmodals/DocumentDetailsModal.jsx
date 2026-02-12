@@ -29,7 +29,8 @@ const DocumentDetailModal = ({ open, onClose, docData }) => {
     : (docData.recipientName ? [{
         recipientName: docData.recipientName,
         submittedTo: docData.submittedTo,
-        lastForwardedAt: docData.lastForwardedAt
+        lastForwardedAt: docData.lastForwardedAt,
+        remarks: docData.remarks
       }] : []);
 
   return (
@@ -135,6 +136,11 @@ const DocumentDetailModal = ({ open, onClose, docData }) => {
                         <DetailItem label="Forwarded To" value={record.recipientName} colors={colors} />
                         <DetailItem label="Department" value={record.submittedTo} colors={colors} />
                       </Box>
+
+                      <Box mt={1.5}>
+                        <DetailItem label="Message / Remarks" value={record.remarks} colors={colors} />
+                      </Box>
+
                       <Box mt={1}>
                         <DetailItem 
                           label="Transaction Date" 
