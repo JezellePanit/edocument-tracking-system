@@ -27,6 +27,7 @@ import Line from "./scenes/line";
 import Pie from "./scenes/pie";
 import FAQ from "./scenes/faq";
 import Calendar from "./scenes/calendar";
+import Department from "./scenes/department";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -70,6 +71,7 @@ function App() {
                   <Route path="/line" element={<Line searchTerm={searchTerm}/>} />
                   <Route path="/faq" element={<FAQ searchTerm={searchTerm}/>} />
                   <Route path="/calendar" element={<Calendar searchTerm={searchTerm}/>} />
+                  <Route path="/department" element={<Department searchTerm={searchTerm}/>} />
                 </Routes>
               </main>
             </div>

@@ -90,6 +90,7 @@ const TheSidebar = () => {
     else if (path === "/bar") setSelected("Bar Chart");
     else if (path === "/pie") setSelected("Pie Chart");
     else if (path === "/line") setSelected("Line Chart");
+    else if (path === "/department") setSelected("Department");
 
     return () => unsubscribe();
   }, [location.pathname]);
@@ -229,6 +230,7 @@ const TheSidebar = () => {
               <Item title="Line Chart" to="/line" icon={<TimelineOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Calendar" to="/calendar" icon={<CalendarTodayOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="FAQ Page" to="/faq" icon={<HelpOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Department" to="/department" icon={<ContactsOutlinedIcon />} selected={selected} setSelected={setSelected} />
             </Box>
           </Menu>
         </Sidebar>
