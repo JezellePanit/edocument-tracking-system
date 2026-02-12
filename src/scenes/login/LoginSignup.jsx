@@ -28,10 +28,12 @@ const LoginSignup = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
+    idNumber: "",
     email: "",
     password: "",
     confirmPassword: "",
     department: "",
+    jobTitle: "",
   });
 
   // Handle input changes
@@ -112,22 +114,22 @@ const LoginSignup = () => {
         );
         const user = userCredential.user;
 
-        await setDoc(doc(db, "users", user.uid), {
-          username: formData.username,
-          email: formData.email,
-          department: formData.department,
-          createdAt: new Date(),
-        });
+      await setDoc(doc(db, "users", user.uid), {
+            username: formData.username,
+            idNumber: formData.idNumber, // Added
+            email: formData.email,
+            department: formData.department,
+            jobTitle: formData.jobTitle, // Changed from static "user" to dynamic
+            role: "user", // 🔒 HARD-CODED: Everyone who signs up is a standard user
+            createdAt: new Date(),
+          });
 
-        // ✅ Use Custom Success Alert
-        showAlert("Account created successfully! You can now sign in.", "success");
-        
-        // Wait a bit so they see the success message before switching
-        setTimeout(() => switchMode("login"), 2000);
-      } catch (error) {
-        showAlert(error.message, "error");
+          showAlert("Account created successfully!", "success");
+          setTimeout(() => switchMode("login"), 2000);
+        } catch (error) {
+          showAlert(error.message, "error");
+        }
       }
-    }
 
     // LOGIN
     else if (mode === "login") {
@@ -155,8 +157,14 @@ const LoginSignup = () => {
         // ✅ Personalized Welcome Alert
         showAlert(`Welcome back, ${userData.username}! Redirecting...`, "success");
 
-        // Wait for them to read the welcome message before navigating
-        setTimeout(() => navigate("/dashboard"), 1500);
+        // 🔥 LOGIC FIXED: Redirection happens here based on role
+        setTimeout(() => {
+          if (userData.role === "admin") {
+            navigate("/admin-dashboard"); // Change to your actual admin route
+          } else {
+            navigate("/dashboard"); // Standard employee dashboard
+          }
+        }, 1500);
 
       } catch (error) {
         showAlert("Invalid email or password. Please try again.", "error");
@@ -328,7 +336,7 @@ const LoginSignup = () => {
         <div className="login-left">
           <img src={logo} alt="TESDA CSITE Logo" className="logo" />
           <h2>
-            Document <br /> Tracking System
+            Human Resource <br /> Information System
           </h2>
         </div>
 
@@ -339,8 +347,8 @@ const LoginSignup = () => {
           <form key={mode} onSubmit={handleAuth}>
             {mode === "login" && (
               <>
+                {/* 🔥 Syntax error fixed: Logic was removed from here and moved to handleAuth */}
                 <h3>Sign in</h3>
-
                 <input
                   type="email"
                   name="email"
@@ -350,7 +358,6 @@ const LoginSignup = () => {
                   onChange={handleChange}
                   required
                 />
-
                 <div className="password-wrapper">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -363,222 +370,233 @@ const LoginSignup = () => {
                   />
                   <span
                     className="toggle-password"
-                    style={{
-                      cursor: formData.password ? "pointer" : "not-allowed",
-                    }}
-                    onClick={() => {
-                      if (formData.password)
-                        setShowPassword(!showPassword);
-                    }}
+                    style={{ cursor: formData.password ? "pointer" : "not-allowed" }}
+                    onClick={() => { if (formData.password) setShowPassword(!showPassword); }}
                   >
                     {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                   </span>
                 </div>
-
-                <button type="submit" className="login-btn">
-                  Log In
-                </button>
-
-                <span
-                  className="forgot"
-                  onClick={() => switchMode("forgot")}
-                >
-                  Forgot Password?
-                </span>
-
+                <button type="submit" className="login-btn">Log In</button>
+                <span className="forgot" onClick={() => switchMode("forgot")}>Forgot Password?</span>
                 <p className="switch-login">
-                  Don’t have an account?{" "}
-                  <span onClick={() => switchMode("signup")}>
-                    Sign up
-                  </span>
+                  Don’t have an account? <span onClick={() => switchMode("signup")}>Sign up</span>
                 </p>
               </>
             )}
 
-{mode === "signup" && (
-  <>
-    <h3>Sign up</h3>
+            {mode === "signup" && (
+              <>
+                <h3>Sign up</h3>
+                
 
-    {/* USERNAME */}
-    <div className="input-group">
-      <div className="input-container">
-        <input
-          type="text"
-          name="username"
-          placeholder="Username"
-          maxLength={15}
-          value={formData.username}
-          onChange={handleChange}
-          required
-          style={{ border: usernameAvailable === false ? "1.5px solid #d32f2f" : "" }}
-        />
-        <span className={`char-counter ${formData.username.length >= 15 ? 'limit' : ''}`}>
-          {formData.username.length}/15
-        </span>
-      </div>
-      {usernameAvailable === false && (
-        <div className="status-message error-text">
-          <ErrorIcon sx={{ fontSize: 16 }} /> <span>Username taken</span>
-        </div>
-      )}
-      {usernameAvailable === true && (
-        <div className="status-message success-text">
-          <CheckCircleIcon sx={{ fontSize: 16 }} /> <span>Username available</span>
-        </div>
-      )}
-    </div>
+                {/* USERNAME */}
+                <div className="input-group">
+                  <div className="input-container">
+                    <input
+                      type="text"
+                      name="username"
+                      placeholder="Username"
+                      maxLength={15}
+                      value={formData.username}
+                      onChange={handleChange}
+                      required
+                      style={{ border: usernameAvailable === false ? "1.5px solid #d32f2f" : "" }}
+                    />
+                    <span className={`char-counter ${formData.username.length >= 15 ? 'limit' : ''}`}>
+                      {formData.username.length}/15
+                    </span>
+                  </div>
+                  {usernameAvailable === false && (
+                    <div className="status-message error-text">
+                      <ErrorIcon sx={{ fontSize: 16 }} /> <span>Username taken</span>
+                    </div>
+                  )}
+                  {usernameAvailable === true && (
+                    <div className="status-message success-text">
+                      <CheckCircleIcon sx={{ fontSize: 16 }} /> <span>Username available</span>
+                    </div>
+                  )}
+                </div>
 
-    {/* EMAIL WITH REAL-TIME FORMAT CHECK */}
-    <div className="input-group">
-      <div className="input-container">
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          maxLength={30}
-          value={formData.email}
-          onChange={handleChange}
-          required
-          style={{ 
-            border: (signUpEmailExists === true || (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))) 
-            ? "1.5px solid #d32f2f" : "" 
-          }}
-        />
-      </div>
-      {/* Show error if email format is wrong */}
-      {formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
-        <div className="status-message error-text">
-          <ErrorIcon sx={{ fontSize: 16 }} /> <span>Invalid email format</span>
-        </div>
-      )}
-      {/* Show error if email already exists in DB */}
-      {signUpEmailExists === true && (
-        <div className="status-message error-text">
-          <ErrorIcon sx={{ fontSize: 16 }} /> <span>Email already registered</span>
-        </div>
-      )}
-    </div>
+                {/* ID NUMBER*/}
+                <div className="input-group">
+                  <input
+                    type="text"
+                    name="idNumber"
+                    placeholder="ID Number (e.g., 2024-0001)"
+                    maxLength={20}
+                    value={formData.idNumber}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-    {/* PASSWORD WITH STRENGTH & REQUIREMENTS */}
-    <div className="input-group">
-      <div className="password-wrapper">
-        <input
-          type={showPassword ? "text" : "password"}
-          name="password"
-          placeholder="Password"
-          maxLength={15}
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-        <span className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
-          {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-        </span>
-      </div>
+                {/* EMAIL WITH REAL-TIME FORMAT CHECK */}
+                <div className="input-group">
+                  <div className="input-container">
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Email"
+                      maxLength={50}
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      style={{ 
+                        border: (signUpEmailExists === true || (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))) 
+                        ? "1.5px solid #d32f2f" : "" 
+                      }}
+                    />
+                  </div>
+                  {/* Show error if email format is wrong */}
+                  {formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) && (
+                    <div className="status-message error-text">
+                      <ErrorIcon sx={{ fontSize: 16 }} /> <span>Invalid email format</span>
+                    </div>
+                  )}
+                  {/* Show error if email already exists in DB */}
+                  {signUpEmailExists === true && (
+                    <div className="status-message error-text">
+                      <ErrorIcon sx={{ fontSize: 16 }} /> <span>Email already registered</span>
+                    </div>
+                  )}
+                </div>
 
-      {/* Strength Indicator Label */}
-      {passwordStrength && (
-        <div className={`status-message strength-${passwordStrength.toLowerCase()}`}>
-          <InfoIcon sx={{ fontSize: 16 }} />
-          <span>Strength: <strong>{passwordStrength}</strong></span>
-        </div>
-      )}
+                {/* PASSWORD WITH STRENGTH & REQUIREMENTS */}
+                <div className="input-group">
+                  <div className="password-wrapper">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      placeholder="Password"
+                      maxLength={15}
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                    />
+                    <span className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </span>
+                  </div>
 
-      {/* Requirement Checklist - Turns Green when met */}
-      {formData.password && passwordStrength !== "Strong" && (
-        <div className="password-checklist">
-          <p className={passRequirements.isLongEnough ? "met" : "unmet"}>
-            {passRequirements.isLongEnough ? "✓" : "•"} 8-15 Characters
-          </p>
-          <p className={(passRequirements.hasUpperCase && passRequirements.hasLowerCase) ? "met" : "unmet"}>
-            {(passRequirements.hasUpperCase && passRequirements.hasLowerCase) ? "✓" : "•"} Upper & Lowercase
-          </p>
-          <p className={passRequirements.hasNumber ? "met" : "unmet"}>
-            {passRequirements.hasNumber ? "✓" : "•"} At least one Number
-          </p>
-          <p className={passRequirements.hasSpecial ? "met" : "unmet"}>
-            {passRequirements.hasSpecial ? "✓" : "•"} Special Character (!@#$)
-          </p>
-        </div>
-      )}
-      {/* Optional: Show a "Success" message when strong */}
-      {passwordStrength === "Strong" && (
-        <div className="status-message success-text" style={{ marginTop: "0px" }}>
-          <CheckCircleIcon sx={{ fontSize: 16 }} /> <span>Password is secure!</span>
-        </div>
-      )}
-    </div>
+                  {/* Strength Indicator Label */}
+                  {passwordStrength && (
+                    <div className={`status-message strength-${passwordStrength.toLowerCase()}`}>
+                      <InfoIcon sx={{ fontSize: 16 }} />
+                      <span>Strength: <strong>{passwordStrength}</strong></span>
+                    </div>
+                  )}
 
-    {/* CONFIRM PASSWORD */}
-    <div className="input-group">
-      <div className="password-wrapper">
-        <input
-          type={showConfirmPassword ? "text" : "password"}
-          name="confirmPassword"
-          placeholder="Confirm Password"
-          maxLength={15}
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          required
-          style={{ 
-            border: formData.confirmPassword && formData.password !== formData.confirmPassword ? "1.5px solid #d32f2f" : "" 
-          }}
-        />
-        <span className="toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-          {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-        </span>
-      </div>
-      {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-        <div className="status-message error-text">
-          <ErrorIcon sx={{ fontSize: 16 }} /> <span>Passwords do not match</span>
-        </div>
-      )}
-    </div>
+                  {/* Requirement Checklist - Turns Green when met */}
+                  {formData.password && passwordStrength !== "Strong" && (
+                    <div className="password-checklist">
+                      <p className={passRequirements.isLongEnough ? "met" : "unmet"}>
+                        {passRequirements.isLongEnough ? "✓" : "•"} 8-15 Characters
+                      </p>
+                      <p className={(passRequirements.hasUpperCase && passRequirements.hasLowerCase) ? "met" : "unmet"}>
+                        {(passRequirements.hasUpperCase && passRequirements.hasLowerCase) ? "✓" : "•"} Upper & Lowercase
+                      </p>
+                      <p className={passRequirements.hasNumber ? "met" : "unmet"}>
+                        {passRequirements.hasNumber ? "✓" : "•"} At least one Number
+                      </p>
+                      <p className={passRequirements.hasSpecial ? "met" : "unmet"}>
+                        {passRequirements.hasSpecial ? "✓" : "•"} Special Character (!@#$)
+                      </p>
+                    </div>
+                  )}
+                  {/* Optional: Show a "Success" message when strong */}
+                  {passwordStrength === "Strong" && (
+                    <div className="status-message success-text" style={{ marginTop: "0px" }}>
+                      <CheckCircleIcon sx={{ fontSize: 16 }} /> <span>Password is secure!</span>
+                    </div>
+                  )}
+                </div>
 
-    <select name="department" value={formData.department} onChange={handleChange} required>
-      <option value="" disabled hidden>Select Department</option>
-      <option value="executive">Executive Office</option>
-      <option value="administrative">Administrative Section</option>      
-      <option value="records">Records Section</option>
-      <option value="procurement">Procurement</option>
-      <option value="finance">Finance</option>
-      <option value="training">Training Section</option>
-      <option value="assessment">Assessment Section</option>
-      <option value="it">IT / System Admin</option>
-    </select>
+                {/* CONFIRM PASSWORD */}
+                <div className="input-group">
+                  <div className="password-wrapper">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      placeholder="Confirm Password"
+                      maxLength={15}
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      required
+                      style={{ 
+                        border: formData.confirmPassword && formData.password !== formData.confirmPassword ? "1.5px solid #d32f2f" : "" 
+                      }}
+                    />
+                    <span className="toggle-password" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                      {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </span>
+                  </div>
+                  {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                    <div className="status-message error-text">
+                      <ErrorIcon sx={{ fontSize: 16 }} /> <span>Passwords do not match</span>
+                    </div>
+                  )}
+                </div>
 
-    <p className="policy-text">
-      By clicking Create New Account, you agree to our{" "}
-      <span className="policy-link" onClick={() => navigate("../policies/Terms", { state: { fromSignUp: true, savedData: formData } })}>
-        Terms
-      </span>{" "}
-      and{" "}
-      <span className="policy-link" onClick={() => navigate("../policies/PrivacyPolicy", { state: { fromSignUp: true, savedData: formData } })}>
-        Privacy Policy
-      </span>.
-    </p>
+                <select name="department" value={formData.department} onChange={handleChange} required>
+                  <option value="" disabled hidden>Select Department</option>
+                  <option value="executive">Executive Office</option>
+                  <option value="administrative">Administrative Section</option>      
+                  <option value="records">Records Section</option>
+                  <option value="procurement">Procurement</option>
+                  <option value="finance">Finance</option>
+                  <option value="training">Training Section</option>
+                  <option value="assessment">Assessment Section</option>
+                  <option value="it">IT / System Admin</option>
+                </select>
 
-    <button
-      type="submit"
-      className="login-btn"
-      disabled={
-        !usernameAvailable || 
-        signUpEmailExists || 
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) || 
-        passwordStrength !== "Strong" || 
-        formData.password !== formData.confirmPassword ||
-        !formData.department
-      }
-    >
-      Create New Account
-    </button>
+                {/* ROLE INPUT (User types this manually) */}
+                <div className="input-group">
+                  <input
+                    type="text"
+                    name="jobTitle"
+                    placeholder="Job Title (e.g. Instructor)"
+                    maxLength={30}
+                    value={formData.jobTitle}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-    <p className="switch-signup">
-      Already have an account?{" "}
-      <span onClick={() => switchMode("login")}>Sign in</span>
-    </p>
-  </>
-)}
+                <p className="policy-text">
+                  By clicking Create New Account, you agree to our{" "}
+                  <span className="policy-link" onClick={() => navigate("../policies/Terms", { state: { fromSignUp: true, savedData: formData } })}>
+                    Terms
+                  </span>{" "}
+                  and{" "}
+                  <span className="policy-link" onClick={() => navigate("../policies/PrivacyPolicy", { state: { fromSignUp: true, savedData: formData } })}>
+                    Privacy Policy
+                  </span>.
+                </p>
+
+                <button
+                  type="submit"
+                  className="login-btn"
+                  disabled={
+                    !usernameAvailable || 
+                    signUpEmailExists || 
+                    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) || 
+                    !formData.idNumber || // Ensure ID Number is present
+                    !formData.jobTitle ||     // Ensure Job Title is present
+                    passwordStrength !== "Strong" || 
+                    formData.password !== formData.confirmPassword ||
+                    !formData.department
+                  }
+                >
+                  Create New Account
+                </button>
+
+                <p className="switch-signup">
+                  Already have an account?{" "}
+                  <span onClick={() => switchMode("login")}>Sign in</span>
+                </p>
+              </>
+            )}
 
             {mode === "forgot" && (
               <>
