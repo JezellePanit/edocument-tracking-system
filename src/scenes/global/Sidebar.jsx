@@ -262,8 +262,7 @@ const TheSidebar = () => {
                 </Typography>
                 <Item title="Leave Application" to="/leaverequest" icon={<CalendarTodayOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="My Documents" to="/mydocument" icon={<FileUploadOutlinedIcon />} selected={selected} setSelected={setSelected} />
-                <Item title="Leave Application" to="/leave-apply" icon={<CalendarTodayOutlinedIcon />} selected={selected} setSelected={setSelected} />
-                <Item title="My Documents" to="/mydocument" icon={<InsertDriveFileOutlinedIcon />} selected={selected} setSelected={setSelected} />
+                {/* <Item title="My Documents" to="/mydocument" icon={<InsertDriveFileOutlinedIcon />} selected={selected} setSelected={setSelected} /> */}
                 <Item title="Inbox" to="/inbox" icon={<MoveToInboxOutlinedIcon />} selected={selected} setSelected={setSelected} />   
                 <Item title="Outbox" to="/outbox" icon={<OutboxOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
