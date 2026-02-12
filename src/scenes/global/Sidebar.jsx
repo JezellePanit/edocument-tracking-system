@@ -29,6 +29,7 @@ import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined
 
 
 
+
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -100,6 +101,7 @@ const TheSidebar = () => {
     else if (path === "/bar") setSelected("Bar Chart");
     else if (path === "/department") setSelected("Department");
     else if (path === "/line") setSelected("Line Chart");
+    else if (path === "/leavemanagement") setSelected("Leave Management");
 
     return () => unsubscribe();
   }, [location.pathname]);
@@ -223,7 +225,7 @@ const TheSidebar = () => {
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
                   {isCollapsed ? "Mng" : "Manage"}
                 </Typography>
-                <Item title="Leave Management" to="/inbox" icon={<EventNoteOutlinedIcon />} selected={selected} setSelected={setSelected} />
+                <Item title="Leave Management" to="/leavemanagement" icon={<EventNoteOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="Document Management" to="/mydocument" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
