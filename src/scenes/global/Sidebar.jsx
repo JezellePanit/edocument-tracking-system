@@ -98,9 +98,8 @@ const TheSidebar = () => {
     else if (path === "/calendar") setSelected("Calendar");
     else if (path === "/faq") setSelected("FAQ Page");
     else if (path === "/bar") setSelected("Bar Chart");
-    else if (path === "/pie") setSelected("Pie Chart");
-    else if (path === "/line") setSelected("Line Chart");
     else if (path === "/department") setSelected("Department");
+    else if (path === "/line") setSelected("Line Chart");
 
     return () => unsubscribe();
   }, [location.pathname]);
@@ -214,7 +213,7 @@ const TheSidebar = () => {
                 </Typography>
                 <Item title="Dashboard" to="/dashboard" icon={<HomeOutlinedIcon/>} selected={selected} setSelected={setSelected} />
                 <Item title="Employees" to="/bar" icon={<PeopleOutlinedIcon/>} selected={selected} setSelected={setSelected} />
-                <Item title="Departments" to="/pie" icon={<BusinessOutlinedIcon />} selected={selected} setSelected={setSelected} />
+                <Item title="Departments" to="/department" icon={<BusinessOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
                   {isCollapsed ? "Comms" : "Communications"}

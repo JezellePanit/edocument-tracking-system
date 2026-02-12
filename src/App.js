@@ -24,7 +24,6 @@ import Inbox from "./scenes/inbox";
 import Outbox from "./scenes/outbox";
 import Bar from "./scenes/bar";
 import Line from "./scenes/line";
-import Pie from "./scenes/pie";
 import FAQ from "./scenes/faq";
 import Calendar from "./scenes/calendar";
 import Department from "./scenes/department";
@@ -67,7 +66,6 @@ function App() {
                   <Route path="/inbox" element={<Inbox searchTerm={searchTerm}/>} />
                   <Route path="/outbox" element={<Outbox searchTerm={searchTerm}/>} />
                   <Route path="/bar" element={<Bar searchTerm={searchTerm}/>} />
-                  <Route path="/pie" element={<Pie searchTerm={searchTerm}/>} />
                   <Route path="/line" element={<Line searchTerm={searchTerm}/>} />
                   <Route path="/faq" element={<FAQ searchTerm={searchTerm}/>} />
                   <Route path="/calendar" element={<Calendar searchTerm={searchTerm}/>} />
