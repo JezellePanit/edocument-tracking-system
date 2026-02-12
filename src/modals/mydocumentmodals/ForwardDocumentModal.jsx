@@ -6,30 +6,27 @@ import CloseIcon from "@mui/icons-material/Close";
 import SendIcon from '@mui/icons-material/Send';
 import { tokens } from "../../theme";
 import { db } from "../../firebaseConfig";
-// Added arrayUnion to imports
 import { collection, query, where, getDocs, doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { auth } from "../../firebaseConfig";
 
 const DEPARTMENT_NAMES = {
-  executive: "Executive Office",
-  administrative: "Administrative Section",
-  records: "Records Section",
-  procurement: "Procurement",
-  finance: "Finance",
-  training: "Training Section",
-  assessment: "Assessment Section",
-  it: "IT / System Admin"
+  hr: "Human Resource",
 };
 
 const DEPARTMENT_CATEGORIES = {
-  executive: ["Executive Communications", "Approved Reports", "Policy & Directives", "For Approval Documents", "Memoranda and Directives", "Signed Inspection Reports", "Special Requests & Complaints"],
-  records: ["Incoming Client Documents", "Certificate Claim Requests", "SPA & Authorization Files", "Document Logs & Tracking", "Learner’s Profile Forms (MIS 03-01)", "Transmittal Records"],
-  administrative: ["Administrative Documents", "QMS Forms", "Internal Requests", "Circulars & Advisories", "Attendance and Activity Reports"],
-  procurement: ["Procurement Requests (PR)", "Purchase Orders (PO)", "Request for Quotation (RFQ)", "Supplier & Bidding Documents", "Inspection & Acceptance Files (IAR)", "BAC-related Files"],
-  finance: ["Financial Documents", "Scholarship Disbursements", "Budget & Liquidation Reports", "Obligation Request and Status (ORS)", "Disbursement Vouchers (DV)", "Payroll-related Files"],
-  training: ["Training Documents", "Trainee Records", "Scholarship Applications", "Training Plans & Reports", "Training Regulations (TRs)", "Competency-Based Curriculum (CBC)"],
-  assessment: ["Assessment Applications", "Certification Documents", "Assessment Results", "Certified Worker Records", "National Certificate (NC)", "Registry of Certified Workers"],
-  it: ["System Administration", "User Access Management", "Audit Logs", "Data Privacy & Security", "System Backup Reports", "Incident and Maintenance Reports"]
+  hr: [
+    "Personal Records/ PDS",
+    "Employment Records",
+    "Leave Documents",
+    "Medical Certificates",
+    "Memorandums",
+    "Contracts (COS/JO)",
+    "Training & Certifications",
+    "Performance Evaluation Forms",
+    "Appointment Papers",
+    "Separation Documents",
+    "Clearance & Separation"
+  ]
 };
 
 const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
@@ -37,7 +34,7 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
   const colors = tokens(theme.palette.mode);
   const currentUser = auth.currentUser;
   
-  const [targetDept, setTargetDept] = useState("");
+  const [targetDept] = useState("hr"); 
   const [targetUser, setTargetUser] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -45,11 +42,9 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
   const [remarks, setRemarks] = useState("");
   const [deptUsers, setDeptUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false); // New Success State
+  const [isSuccess, setIsSuccess] = useState(false); 
 
-  // --- 1. RESET LOGIC ---
   const resetForm = () => {
-    setTargetDept("");
     setTargetUser("");
     setRecipientEmail("");
     setSelectedCategory("");
@@ -70,18 +65,16 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
     }
   }, [open, docData]);
 
-  // --- 2. USER FETCHING LOGIC ---
+  // Fetch only Admin users (HR)
   useEffect(() => {
     const fetchUsers = async () => {
-      if (!targetDept) return setDeptUsers([]);
       try {
         const q = query(
           collection(db, "users"), 
-          where("department", "in", [targetDept, DEPARTMENT_NAMES[targetDept]])
+          where("role", "==", "admin") 
         );
         const snap = await getDocs(q);
         
-        // FILTER: Remove the current user from the list
         const usersList = snap.docs
           .map(d => ({ id: d.id, ...d.data() }))
           .filter(user => user.uid !== currentUser?.uid && user.id !== currentUser?.uid); 
@@ -91,18 +84,15 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
         console.error("Error fetching users:", err); 
       }
     };
-    if (open && targetDept) fetchUsers();
-  }, [targetDept, open, currentUser]);
+    if (open) fetchUsers();
+  }, [open, currentUser]);
 
-  // --- 3. FORWARDING LOGIC ---
   const handleForward = async () => {
-    // Extra safety check
     if (targetUser === currentUser?.uid) {
       alert("You cannot forward a document to yourself.");
       return;
     }
 
-    // Determine the final category string
     const finalCategory = selectedCategory === "Others" ? customCategory : selectedCategory;
 
     if (!targetUser || !docData || !finalCategory) {
@@ -117,32 +107,32 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
       const emailToSave = selectedUserObj?.email || "Unknown Email";
 
       setRecipientEmail(emailToSave);
-
       const timestamp = new Date();
 
       await updateDoc(docRef, {
-        categoryName: finalCategory, // Saves either the selection or the custom text
-        submittedTo: DEPARTMENT_NAMES[targetDept] || targetDept, 
+        categoryName: finalCategory,
+        submittedTo: DEPARTMENT_NAMES[targetDept], 
         recipientId: targetUser,  
         recipientName: emailToSave,
-        status: "Sent",           
+        senderId: currentUser.uid, 
+        senderEmail: currentUser.email,
+        status: "Sent", // THIS FIELD TRANSFERS IT TO THE OUTBOX
         lastForwardedAt: timestamp,
         remarks: remarks,
-        // CHECKED: History array logic using arrayUnion
         forwardingHistory: arrayUnion({
           recipientName: emailToSave,
-          submittedTo: DEPARTMENT_NAMES[targetDept] || targetDept,
+          submittedTo: DEPARTMENT_NAMES[targetDept],
           lastForwardedAt: timestamp,
           remarks: remarks,
+          senderEmail: currentUser.email
         })
       });
 
-      setIsSuccess(true); // Trigger success view
-      onForwardSuccess(); 
-
+      setIsSuccess(true); 
+      // Removed alert, let the Success View handle it
     } catch (error) {
-      console.error("Forwarding Error:", error);
-      alert("Error: " + error.message);
+       console.error("Forwarding Error:", error);
+       alert("Error: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -161,10 +151,9 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
           border: `1px solid ${colors.primary[500]}`
         }}
       >
-        {/* SUCCESS VIEW */}
         {isSuccess ? (
-          /* SUCCESS VIEW - COPIED DESIGN FROM DOCUMENTMODAL */
-          <Box sx={{ textAlign: 'center', py: 2  }}>
+          /* SUCCESS VIEW - No "Send Again" button, only "Done" to close */
+          <Box sx={{ textAlign: 'center', py: 2 }}>
             <Box 
               display="flex" justifyContent="center" alignItems="center" mb={2}
               sx={{ 
@@ -180,22 +169,23 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
             </Typography>
             
             <Typography variant="body1" color={colors.grey[300]} mb={4}>
-              The document has been sent to <strong>{recipientEmail}</strong> of <strong>{DEPARTMENT_NAMES[targetDept]}</strong>.
+              Document forwarded to <strong>{recipientEmail}</strong>.<br/>
+              You can track this in your <strong>Outbox</strong>.
             </Typography>
 
             <Box display="flex" justifyContent="center">
-                <Button 
-                    variant="contained" 
-                    color="success" 
-                    onClick={handleClose}
-                    sx={{ px: 4, borderRadius: '8px', fontWeight: 'bold' }}
-                >
-                    Done
-                </Button>
+              <Button 
+                variant="contained" 
+                color="success" 
+                onClick={() => onClose(true)} // FIX: Passing 'true' tells the parent the send was a success
+                sx={{ px: 4, borderRadius: '8px', fontWeight: 'bold' }}
+              >
+                Done
+              </Button>
             </Box>
           </Box>
         ) : (
-          /* STANDARD FORM VIEW */
+          /* FORM VIEW */
           <>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
               <Typography variant="h4" color={colors.grey[100]} fontWeight="bold">Send Document</Typography>
@@ -206,97 +196,66 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
 
             <Box display="flex" flexDirection="column" gap="20px">
               <Typography variant="h6" color={colors.greenAccent[400]}>
-                Sending: <strong>{docData.title}</strong>
+                Forwarding: <strong>{docData.title}</strong>
               </Typography>
 
-              {/* 1. Department Selection */}
               <TextField 
-                select label="Target Department" fullWidth required
-                value={targetDept} 
-                onChange={(e) => { 
-                    setTargetDept(e.target.value); 
-                    setTargetUser(""); 
-                    setSelectedCategory(""); 
-                    setCustomCategory("");
-                }}
-                sx={{ "& .MuiInputLabel-root": { color: colors.grey[500] } }}
+                label="Target Department"
+                fullWidth
+                value={DEPARTMENT_NAMES[targetDept]}
+                InputProps={{ readOnly: true }}
+                sx={{ "& .MuiInputBase-input": { color: colors.grey[300] }, bgcolor: "rgba(0,0,0,0.05)" }}
+              />
+
+              <TextField 
+                select 
+                label={deptUsers.length === 0 ? "Loading HR Admins..." : "Select HR Recipient (Email)"}
+                fullWidth required disabled={deptUsers.length === 0}
+                value={targetUser} 
+                onChange={(e) => setTargetUser(e.target.value)}
               >
-                {Object.keys(DEPARTMENT_NAMES).map((key) => (
-                  <MenuItem key={key} value={key}>{DEPARTMENT_NAMES[key]}</MenuItem>
+                {deptUsers.map((user) => (
+                  <MenuItem key={user.id} value={user.uid || user.id}>
+                    {user.email}
+                  </MenuItem>
                 ))}
               </TextField>
 
-              {/* 2. Recipient Selection */}
-              {targetDept && (
-                <TextField 
-                  select 
-                  label={deptUsers.length === 0 ? "No users in this department" : "Select Recipient"}
-                  fullWidth required disabled={deptUsers.length === 0}
-                  value={targetUser} 
-                  onChange={(e) => setTargetUser(e.target.value)}
-                  sx={{ "& .MuiInputLabel-root": { color: colors.grey[500] } }}
-                >
-                  {deptUsers.map((user) => (
-                    <MenuItem key={user.id} value={user.uid || user.id}>
-                      {user.email}
-                    </MenuItem>
-                  ))}
-                </TextField>
+              <TextField 
+                select label="Document Category" fullWidth required
+                value={selectedCategory} 
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                {DEPARTMENT_CATEGORIES.hr.map((cat) => (
+                  <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                ))}
+                <MenuItem value="Others"><em>Others (Please specify)</em></MenuItem>
+              </TextField>
+
+              {selectedCategory === "Others" && (
+                <TextField
+                  label="Specify Category"
+                  fullWidth required
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  placeholder="Enter custom category name"
+                  sx={{ mt: -1 }}
+                />
               )}
 
-              {/* 3. Category Selection */}
-              {targetDept && (
-                <>
-                  <TextField 
-                    select label="Select Category" fullWidth required
-                    value={selectedCategory} 
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    sx={{ "& .MuiInputLabel-root": { color: colors.grey[500] } }}
-                  >
-                    {(DEPARTMENT_CATEGORIES[targetDept] || []).map((cat) => (
-                      <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-                    ))}
-                    {/* ADDED OTHERS OPTION */}
-                    <MenuItem value="Others"><em>Others (Please specify)</em></MenuItem>
-                  </TextField>
-
-                  {/* 4. Custom Category Input (Visible only when "Others" is selected) */}
-                  {selectedCategory === "Others" && (
-                    <TextField
-                      label="Specify Category"
-                      fullWidth
-                      required
-                      value={customCategory}
-                      onChange={(e) => setCustomCategory(e.target.value)}
-                      placeholder="Enter custom category name"
-                      sx={{ mt: -1 }}
-                    />
-                  )}
-
-                  {/* 5. Remarks */}
-                  <TextField
-                    label="Message / Remarks"
-                    placeholder="Add instructions or notes for the recipient..."
-                    fullWidth
-                    multiline
-                    rows={3}
-                    value={remarks}
-                    onChange={(e) => setRemarks(e.target.value)}
-                    sx={{ mt: 1 }}
-                  />
-                </>
-              )}
+              <TextField
+                label="Message / Remarks"
+                placeholder="Optional notes for HR..."
+                fullWidth multiline rows={3}
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+              />
 
               <Box display="flex" justifyContent="flex-end" gap="10px" mt={2}>
                 <Button onClick={handleClose} sx={{ color: colors.grey[100] }}>Cancel</Button>
                 <Button 
                   variant="contained" startIcon={<SendIcon />} 
-                  disabled={
-                    !targetUser || 
-                    !selectedCategory || 
-                    (selectedCategory === "Others" && !customCategory) || 
-                    loading
-                  }
+                  disabled={!targetUser || !selectedCategory || (selectedCategory === "Others" && !customCategory) || loading}
                   onClick={handleForward}
                   sx={{ backgroundColor: colors.blueAccent[700], color: colors.grey[100], padding: "10px 20px" }}
                 >

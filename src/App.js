@@ -27,9 +27,14 @@ import Line from "./scenes/line";
 import FAQ from "./scenes/faq";
 import Calendar from "./scenes/calendar";
 import Department from "./scenes/department";
+<<<<<<< HEAD
 import LeaveManagement from "./scenes/leavemanagement/Index";
 import Tracker from "./scenes/tracker";
 import LeaveRequestForm from "./scenes/leaverequest";
+=======
+import DocumentManagement from "./scenes/documentmanagement";
+import Home from "./scenes/home";
+>>>>>>> 5c947f1 (MyDocuments updated, admin and user side)
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -76,6 +81,8 @@ function App() {
                   <Route path="/leavemanagement" element={<LeaveManagement searchTerm={searchTerm}/>} />
                   <Route path="/tracker" element={<Tracker searchTerm={searchTerm}/>} />
                   <Route path="/leaverequest" element={<LeaveRequestForm searchTerm={searchTerm}/>} />
+                  <Route path="/home" element={<Home searchTerm={searchTerm}/>} />
+                  <Route path="/documentmanagement" element={<DocumentManagement searchTerm={searchTerm}/>} />
                 </Routes>
               </main>
             </div>

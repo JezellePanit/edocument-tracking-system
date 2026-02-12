@@ -160,9 +160,9 @@ const LoginSignup = () => {
         // 🔥 LOGIC FIXED: Redirection happens here based on role
         setTimeout(() => {
           if (userData.role === "admin") {
-            navigate("/admin-dashboard"); // Change to your actual admin route
+            navigate("/dashboard"); // Change to your actual admin route
           } else {
-            navigate("/dashboard"); // Standard employee dashboard
+            navigate("/home"); // Standard employee dashboard
           }
         }, 1500);
 
@@ -200,6 +200,8 @@ const LoginSignup = () => {
         password: "",
         confirmPassword: "",
         department: "",
+        idNumber: "", // Add this
+        jobTitle: "", // Add this
       });
       // Reset validation states too
       setUsernameAvailable(null);
@@ -642,13 +644,14 @@ const LoginSignup = () => {
                     <option value="" disabled hidden>
                       {emailExists ? "Department Identified" : "Department"}
                     </option>
-                    <option value="executive">Executive Office</option>
-                    <option value="records">Records Section</option>
-                    <option value="procurement">Procurement</option>
-                    <option value="finance">Finance</option>
-                    <option value="training">Training Section</option>
-                    <option value="assessment">Assessment Section</option>
-                    <option value="it">IT / System Admin</option>
+                    <option value="Executive Office">Executive Office</option>
+                    <option value="Administrative Section">Administrative Section</option>      
+                    <option value="Records Section">Records Section</option>
+                    <option value="Procurement">Procurement</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Training Section">Training Section</option>
+                    <option value="Assessment Section">Assessment Section</option>
+                    <option value="IT / System Admin">IT / System Admin</option>
                   </select>
                 </div>
 

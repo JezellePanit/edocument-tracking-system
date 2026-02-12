@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Box, Button, useTheme, Chip } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { db, auth } from "../../firebaseConfig";
 import Header from "../../components/Header";
 import { tokens } from "../../theme";
@@ -10,7 +10,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from '@mui/icons-material/Visibility'; 
 import SendIcon from '@mui/icons-material/Send';
-import ReplyIcon from '@mui/icons-material/Reply';
 
 import DocumentModal from "../../modals/mydocumentmodals/DocumentModal";
 import DocumentMDetailsModal from "../../modals/mydocumentmodals/DocumentDetailsModal";
@@ -33,6 +32,8 @@ const MyDocument = ({ searchTerm = "" }) => {
   const [docToDelete, setDocToDelete] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  const [sendingDocId, setSendingDocId] = useState(null);
+
   // Get the current logged-in user
   const currentUser = auth.currentUser;  
 
@@ -41,17 +42,15 @@ const MyDocument = ({ searchTerm = "" }) => {
 
     // --- ROLE BASED FILTERING LOGIC ---
     // We want to see documents where:
-    // 1. The user is the Creator (uploaderId)
-    const q = query(
-      collection(db, "documents"),
-      or(
-        where("ownerId", "==", currentUser.uid),
-      )
-    );    
-    
-    // This creates a "live" connection to your documents
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(doc => {
+    // 1. The user is the Creator (uploaderId
+  const q = query(
+    collection(db, "documents"),
+    where("ownerId", "==", currentUser.uid)
+  );    
+  
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const docs = snapshot.docs
+      .map(doc => {
         const docData = doc.data();
         let formattedDate = "N/A";
         if (docData.createdAt?.toDate) {
@@ -62,12 +61,33 @@ const MyDocument = ({ searchTerm = "" }) => {
           ...docData,
           displayDate: formattedDate 
         };
-      });
-      setDocuments(docs);
-    });
+      })
+      // FIX: Filter the "Sent" documents HERE in memory
+      .filter(doc => doc.status !== "Sent"); 
 
-    return () => unsubscribe(); 
-  }, [currentUser]); // Re-run if user logs in/out
+    setDocuments(docs);
+  }, (error) => {
+    console.error("Snapshot error:", error);
+  });
+
+  return () => unsubscribe(); 
+}, [currentUser]);
+
+  // Handle Forwarding success to trigger UI updates in parent
+  const handleForwardClose = (wasSent) => {
+    if (wasSent === true) {
+      // The green highlight triggers because sendingDocId is set
+      setTimeout(() => {
+        setDocuments((prevDocs) => prevDocs.filter((doc) => doc.id !== sendingDocId));
+        setSendingDocId(null);
+        setIsForwardModalOpen(false);
+      }, 800); // Delay so user sees the green highlight before it vanishes
+    } else {
+      setSendingDocId(null);
+      setIsForwardModalOpen(false);
+    }
+  };
+
 
   // Handle Edit action
   const handleEdit = (document) => {
@@ -132,19 +152,12 @@ const MyDocument = ({ searchTerm = "" }) => {
         
         // Define color mapping for the 4 levels
         let chipColor;
-        switch(priority) {
-          case "Critical":
-            chipColor = colors.redAccent[500]; // Bright Red
-            break;
-          case "Urgent":
-            chipColor = colors.orangeAccent ? colors.orangeAccent[600] : "#ef6c00";
-            break;
-          case "Low":
-            chipColor = colors.greenAccent[600]; // Green
-            break;
-          default: // Normal
-            chipColor = colors.blueAccent[700]; // Blue
-        }
+          switch(priority) {
+            case "Critical": chipColor = colors.redAccent[500]; break;
+            case "Urgent": chipColor = "#ef6c00"; break;
+            case "Low": chipColor = colors.greenAccent[600]; break;
+            default: chipColor = colors.blueAccent[700];
+          }
 
         return (
           <Chip
@@ -221,35 +234,27 @@ const MyDocument = ({ searchTerm = "" }) => {
 
     {
       field: "send",
-        headerName: "Send / Forward",
-        flex: 1.2,
-        renderCell: (params) => {
-          const isSent = params.row.status === "Sent";
-
-          return (
-            <Box display="flex" alignItems="center" height="100%">
-              <Button
-                variant={isSent ? "outlined" : "contained"}
-                size="small"
-                // If sent, use a subtle color; if not, use the primary action color
-                color={isSent ? "secondary" : "info"} 
-                startIcon={isSent ? <ReplyIcon /> : <SendIcon />}
-                onClick={() => {
-                  setSelectedDoc(params.row);
-                  setIsForwardModalOpen(true);
-                }}
-                sx={{ 
-                  borderRadius: "4px", 
-                  textTransform: "none",
-                  fontSize: "12px" 
-                }}
-              >
-                {isSent ? "Send Another" : "Send"}
-              </Button>
-            </Box>
-          );
-        },
-      },    
+      headerName: "Send / Forward",
+      flex: 1.2,
+      renderCell: (params) => (
+        <Box display="flex" alignItems="center" height="100%">
+          <Button
+            variant="contained"
+            size="small"
+            color="info" 
+            startIcon={<SendIcon />}
+            onClick={() => {
+              setSelectedDoc(params.row);
+              setSendingDocId(params.row.id); 
+              setIsForwardModalOpen(true);
+            }}
+            sx={{ borderRadius: "4px", textTransform: "none", fontSize: "12px" }}
+          >
+            Send
+          </Button>
+        </Box>
+      ),
+    },    
   ];
 
   // Handle closing the modal and resetting edit state
@@ -258,8 +263,9 @@ const MyDocument = ({ searchTerm = "" }) => {
     setEditDoc(null); 
   };
 
-  // Handle row click to open detail modal (if needed)
-const handleRowClick = (params, event) => {
+// Handle row click to open detail modal
+  const handleRowClick = (params, event) => {
+    // Prevent opening details if the user clicked an action button (Edit/Delete/Send)
     if (event.target.closest('button')) return; 
 
     setSelectedDoc(params.row);
@@ -320,20 +326,19 @@ return (
             backgroundColor: colors.primary[400],
             cursor: "pointer",
           },
+          "& .sending-row": {
+            backgroundColor: `${colors.greenAccent[700]} !important`,
+            transition: "background-color 0.5s ease",
+          }
         }}
       >
-        <DataGrid
-          key={searchTerm}
-          rows={filteredRows}
-          columns={columns}
-          onRowClick={handleRowClick}
-          sx={{ cursor: "pointer", 
-            "& .MuiDataGrid-row:hover": {
-              backgroundColor: colors.primary[400], }, 
-          }}
-          pageSize={10}
-          rowsPerPageOptions={[10, 20]}
-          disableSelectionOnClick
+      <DataGrid 
+          rows={filteredRows} 
+          columns={columns} 
+          components={{ Toolbar: GridToolbar }}
+          getRowClassName={(params) => params.id === sendingDocId ? 'sending-row' : ''}
+          // FIX: Added the handler here to use the variable and enable row clicking
+          onRowClick={handleRowClick} 
         />
       </Box>
 
@@ -348,7 +353,7 @@ return (
       {/* When user click forward */}      
       <ForwardDocumentModal 
         open={isForwardModalOpen} 
-        onClose={() => setIsForwardModalOpen(false)} 
+        onClose={handleForwardClose} // FIX: Changed from anonymous function to handleForwardClose
         docData={selectedDoc} 
         onForwardSuccess={fetchDocuments} 
       />

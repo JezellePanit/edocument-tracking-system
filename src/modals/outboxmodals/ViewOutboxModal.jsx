@@ -1,17 +1,37 @@
-import { Box, Typography, Modal, IconButton, Divider, Button, Chip, useTheme } from "@mui/material"; 
+import React, { useState, useEffect } from "react"; // Added useState and useEffect
+import { Box, Typography, Modal, IconButton, Divider, Button, Chip, useTheme, Collapse } from "@mui/material"; // Added Collapse
 import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
+import HistoryIcon from '@mui/icons-material/History';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // Added for click indicator
 import { tokens } from "../../theme";
 
-const DocumentDetailModal = ({ open, onClose, docData }) => {
+const ViewOutboxModal = ({ open, onClose, docData }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const [showFullHistory, setShowFullHistory] = useState(false); // State to toggle view
+
+  // Reset the toggle whenever the modal opens or document changes
+  useEffect(() => {
+    if (open) setShowFullHistory(false);
+  }, [open, docData]);
 
   if (!docData) return null;
 
   const getFileExtension = (filename) => {
     return filename ? filename.split('.').pop().toUpperCase() : "FILE";
   };
+
+  // Logic to handle both the current single recipient and the new history array
+  // FIXED: Prioritize forwardingHistory and reverse it so the newest transaction is at the top
+  const history = docData.forwardingHistory 
+    ? [...docData.forwardingHistory].reverse() 
+    : (docData.recipientName ? [{
+        recipientName: docData.recipientName,
+        submittedTo: docData.submittedTo,
+        lastForwardedAt: docData.lastForwardedAt,
+        remarks: docData.remarks
+      }] : []);
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -60,12 +80,80 @@ const DocumentDetailModal = ({ open, onClose, docData }) => {
             </Box>
           </Box>
 
-          {/* SECOND ROW: Only Date Uploaded (Category Removed) */}
+          {/* SECOND ROW: Category and Date Uploaded */}
           <Box display="grid" gridTemplateColumns="1fr 1fr" gap="20px">
+            <DetailItem label="Category" value={docData.categoryName} colors={colors} />
             <DetailItem label="Date Uploaded" value={docData.displayDate} colors={colors} />
           </Box>
 
           <DetailItem label="Description" value={docData.description} colors={colors} />
+
+          {/* FORWARDING TRACKING SECTION (CLICKABLE TO SHOW ALL) */}
+          {history.length > 0 && (
+            <Box 
+              sx={{ 
+                p: 2, 
+                bgcolor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)", 
+                borderRadius: "8px", 
+                border: `1px solid ${colors.blueAccent[700]}`,
+                cursor: "pointer", // Make it look clickable
+                transition: "all 0.3s ease",
+                "&:hover": { bgcolor: "rgba(255,255,255,0.08)" }
+              }}
+              onClick={() => setShowFullHistory(!showFullHistory)} // Toggle logic
+            >
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box display="flex" alignItems="center" gap="8px">
+                  <HistoryIcon sx={{ color: colors.greenAccent[400] }} />
+                  <Typography variant="h6" color={colors.greenAccent[400]} fontWeight="bold">
+                    Sent Items ({history.length})
+                  </Typography>
+                </Box>
+                <ExpandMoreIcon 
+                  sx={{ 
+                    color: colors.grey[100], 
+                    transform: showFullHistory ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "0.3s"
+                  }} 
+                />
+              </Box>
+
+              {/* Show ONLY the latest recipient when collapsed */}
+              {!showFullHistory && (
+                <Box mt={1.5}>
+                  <Typography variant="body2" color={colors.grey[300]}>
+                    Last sent to: <strong>{history[0].recipientName}</strong>
+                  </Typography>
+                </Box>
+              )}
+              
+              <Collapse in={showFullHistory}>
+                <Box mt={2}>
+                  {history.map((record, index) => (
+                    <Box key={index} sx={{ mb: index !== history.length - 1 ? 2 : 0 }}>
+                      <Divider sx={{ opacity: 0.3, mb: 1.5 }} />
+                      <Box display="grid" gridTemplateColumns="1fr 1fr" gap="15px">
+                        <DetailItem label="Forwarded To" value={record.recipientName} colors={colors} />
+                        <DetailItem label="Department" value={record.submittedTo} colors={colors} />
+                      </Box>
+
+                      <Box mt={1.5}>
+                        <DetailItem label="Message / Remarks" value={record.remarks} colors={colors} />
+                      </Box>
+
+                      <Box mt={1}>
+                        <DetailItem 
+                          label="Transaction Date" 
+                          value={record.lastForwardedAt?.toDate ? record.lastForwardedAt.toDate().toLocaleString() : "Recently"} 
+                          colors={colors} 
+                        />
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              </Collapse>
+            </Box>
+          )}
 
           {/* Files Section */}
           <Box>
@@ -82,7 +170,7 @@ const DocumentDetailModal = ({ open, onClose, docData }) => {
                     fullWidth
                     startIcon={<DownloadIcon />}
                     onClick={(e) => {
-                      e.stopPropagation();
+                      e.stopPropagation(); // Prevent modal toggle if clicked inside a bubble
                       window.open(file.url, "_blank");
                     }}
                     sx={{
@@ -126,4 +214,4 @@ const DetailItem = ({ label, value, colors }) => (
   </Box>
 );
 
-export default DocumentDetailModal;
+export default ViewOutboxModal;

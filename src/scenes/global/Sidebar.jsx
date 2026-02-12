@@ -21,13 +21,15 @@ import BusinessOutlinedIcon from "@mui/icons-material/BusinessOutlined"; // For 
 import CampaignOutlinedIcon from "@mui/icons-material/CampaignOutlined"; // For Memorandums/Notices
 import EventNoteOutlinedIcon from "@mui/icons-material/EventNoteOutlined"; // For Leave Management
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined"; // For Document Management
-import HelpOutlinedIcon from "@mui/icons-material/HelpOutlined";
+import PolicyOutlinedIcon from '@mui/icons-material/PolicyOutlined';
+import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
-import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined"; // For My Documents
+import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import ContactsOutlinedIcon from "@mui/icons-material/ContactsOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
-
-
+import MoveToInboxOutlinedIcon from '@mui/icons-material/MoveToInboxOutlined';
+import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
+import FolderOpenOutlinedIcon from '@mui/icons-material/FolderOpenOutlined';
 
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
@@ -99,6 +101,13 @@ const TheSidebar = () => {
     else if (path === "/calendar") setSelected("Calendar");
     else if (path === "/faq") setSelected("FAQ Page");
     else if (path === "/bar") setSelected("Bar Chart");
+<<<<<<< HEAD
+=======
+    else if (path === "/pie") setSelected("Pie Chart");
+    else if (path === "/line") setSelected("Line Chart");
+    else if (path === "/home") setSelected("Home");
+    else if (path === "/documentmanagement") setSelected("Document Management");
+>>>>>>> 5c947f1 (MyDocuments updated, admin and user side)
     else if (path === "/department") setSelected("Department");
     else if (path === "/line") setSelected("Line Chart");
     else if (path === "/leavemanagement") setSelected("Leave Management");
@@ -225,11 +234,16 @@ const TheSidebar = () => {
                 <Item title="Communication Hub" to="/team" icon={<CampaignOutlinedIcon/>} selected={selected} setSelected={setSelected} />
 
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
-                  {isCollapsed ? "Mng" : "Manage"}
+                  {isCollapsed ? "Mgmt" : "Managment"}
                 </Typography>
+<<<<<<< HEAD
                 <Item title="Leave Management" to="/leavemanagement" icon={<EventNoteOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="Document Management" to="/mydocument" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="Document Tracker" to="/tracker" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
+=======
+                <Item title="Leave Management" to="/inbox" icon={<EventNoteOutlinedIcon />} selected={selected} setSelected={setSelected} />
+                <Item title="Document Management" to="/documentmanagement" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
+>>>>>>> 5c947f1 (MyDocuments updated, admin and user side)
 
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
                   {isCollapsed ? "Lib" : "Library"}
@@ -243,24 +257,36 @@ const TheSidebar = () => {
               <>
                 {/* a. User */}              
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
-                  {isCollapsed ? "User" : "Employee Portal"}
+                  {isCollapsed ? "Main" : "Main"}
                 </Typography>
-                <Item title="Home" to="/inbox" icon={<HomeOutlinedIcon />} selected={selected} setSelected={setSelected} />
+                <Item title="Home" to="/home" icon={<HomeOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
                 {/* b. Operations) */}
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
                   {isCollapsed ? "Ops" : "Operations"}
                 </Typography>
+<<<<<<< HEAD
                 <Item title="Leave Application" to="/leaverequest" icon={<CalendarTodayOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="My Documents" to="/mydocument" icon={<FileUploadOutlinedIcon />} selected={selected} setSelected={setSelected} />
+=======
+                <Item title="Leave Application" to="/leave-apply" icon={<CalendarTodayOutlinedIcon />} selected={selected} setSelected={setSelected} />
+                <Item title="My Documents" to="/mydocument" icon={<InsertDriveFileOutlinedIcon />} selected={selected} setSelected={setSelected} />
+                <Item title="Inbox" to="/inbox" icon={<MoveToInboxOutlinedIcon />} selected={selected} setSelected={setSelected} />   
+                <Item title="Outbox" to="/outbox" icon={<OutboxOutlinedIcon />} selected={selected} setSelected={setSelected} />
+>>>>>>> 5c947f1 (MyDocuments updated, admin and user side)
 
-                {/* c. Support */}
+                {/* c. Library */}
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
-                  {isCollapsed ? "Help" : "Support"}
+                  {isCollapsed ? "Lib" : "Library"}
                 </Typography>
-                <Item title="FAQ Page" to="/faq" icon={<HelpOutlinedIcon />} selected={selected} setSelected={setSelected} />
-                <Item title="Privacy Policy" to="/calendar" icon={<HelpOutlinedIcon />} selected={selected} setSelected={setSelected} />
-                <Item title="Terms and Conditions" to="/outbox" icon={<HelpOutlinedIcon />} selected={selected} setSelected={setSelected} />
+                <Item title="Archive" to="/contacts" icon={<FolderOpenOutlinedIcon />} selected={selected} setSelected={setSelected} />
+
+                {/* d. Support */}
+                <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
+                  {isCollapsed ? "Terms" : "Terms & Policies"}
+                </Typography>
+                <Item title="Privacy Policy" to="/calendar" icon={<PolicyOutlinedIcon />} selected={selected} setSelected={setSelected} />
+                <Item title="Terms and Conditions" to="/faq" icon={<GavelOutlinedIcon />} selected={selected} setSelected={setSelected} />
               </>
             )}
           </Box>

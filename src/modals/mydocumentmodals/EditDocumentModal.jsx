@@ -7,8 +7,8 @@ import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 
-import { supabase } from "../../supabaseClient"; // Using Supabase for Storage
-import { db } from "../../firebaseConfig"; // Using Firebase for Firestore
+import { supabase } from "../../supabaseClient"; 
+import { db } from "../../firebaseConfig"; 
 import { doc, updateDoc } from "firebase/firestore";
 import { tokens } from "../../theme";
 
@@ -18,13 +18,12 @@ const EditDocumentModal = ({ open, onClose, docData, onEditSuccess }) => {
   
   const [formData, setFormData] = useState({
     title: "",
-    categoryName: "",
     description: "",
     priority: "Normal"
   });
   
-  const [existingFiles, setExistingFiles] = useState([]); // Already in Supabase/Firestore
-  const [newFiles, setNewFiles] = useState([]);         // Selected from local machine
+  const [existingFiles, setExistingFiles] = useState([]); 
+  const [newFiles, setNewFiles] = useState([]);         
   const [filesToDelete, setFilesToDelete] = useState([]);  
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +31,6 @@ const EditDocumentModal = ({ open, onClose, docData, onEditSuccess }) => {
     if (docData && open) {
       setFormData({
         title: docData.title || "",
-        categoryName: docData.categoryName || "",
         description: docData.description || "",
         priority: docData.priority || "Normal"
       });
@@ -52,10 +50,9 @@ const EditDocumentModal = ({ open, onClose, docData, onEditSuccess }) => {
     }
   };
 
-// Handle removing a file from the UI and queueing it for Supabase deletion
   const removeExistingFile = (indexToRemove) => {
     const fileTarget = existingFiles[indexToRemove];
-    setFilesToDelete([...filesToDelete, fileTarget]); // Add to deletion queue
+    setFilesToDelete([...filesToDelete, fileTarget]); 
     setExistingFiles(existingFiles.filter((_, index) => index !== indexToRemove));
   };
 
@@ -63,40 +60,30 @@ const EditDocumentModal = ({ open, onClose, docData, onEditSuccess }) => {
     setNewFiles(newFiles.filter((_, index) => index !== indexToRemove));
   };
 
-const handleUpdate = async (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
     
-    // --- VALIDATION: Ensure at least one file exists ---
     if (existingFiles.length === 0 && newFiles.length === 0) {
-      alert("Validation Error: A document must have at least one attachment. Please upload a file before saving.");
+      alert("Validation Error: A document must have at least one attachment.");
       return;
     }
 
     setLoading(true);
 
     try {
-      // 1. PHYSICAL DELETION from Supabase Storage
       if (filesToDelete.length > 0) {
         const pathsToRemove = filesToDelete.map((file) => {
           const parts = file.url.split('/documents/');
           return parts[parts.length - 1];
         });
 
-        const { error: deleteError } = await supabase.storage
+        await supabase.storage
           .from('documents')
           .remove(pathsToRemove);
-
-        if (deleteError) {
-          console.error("Error deleting old files from Supabase:", deleteError.message);
-          // We continue anyway to update Firestore, or you can throw error here
-        } else {
-          console.log("Successfully removed files from storage:", pathsToRemove);
-        }
       }
 
       const finalFileUrls = [...existingFiles];
 
-      // 2. Upload NEW files to SUPABASE Storage (as you already had)
       for (const file of newFiles) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -115,17 +102,15 @@ const handleUpdate = async (e) => {
         finalFileUrls.push({ name: file.name, url: publicUrl });
       }
 
-      // 3. Update docType tags
       const extensions = finalFileUrls.map(f => {
         const ext = f.name.split('.').pop().toLowerCase();
         return ext.charAt(0).toUpperCase() + ext.slice(1);
       });
       const uniqueExtensions = [...new Set(extensions)].join(", ");
 
-      // 4. Update FIREBASE Firestore
       const docRef = doc(db, "documents", docData.id);
       await updateDoc(docRef, {
-        ...formData,
+        ...formData, // Now only contains title, description, and priority
         files: finalFileUrls,
         docType: uniqueExtensions,
         lastEditedAt: new Date()
@@ -161,7 +146,6 @@ const handleUpdate = async (e) => {
           border: `1px solid ${colors.primary[500]}`,
         }}
       >
-        {/* Header */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography variant="h4" color={colors.grey[100]} fontWeight="bold">
             Edit Document
@@ -176,26 +160,45 @@ const handleUpdate = async (e) => {
         <form onSubmit={handleUpdate}>
           <Box display="flex" flexDirection="column" gap="20px">
             
-            <TextField name="title" label="Document Title" fullWidth required value={formData.title} onChange={handleChange} />
+            <TextField 
+              name="title" 
+              label="Document Title" 
+              fullWidth 
+              required 
+              value={formData.title} 
+              onChange={handleChange} 
+            />
 
-            <TextField name="categoryName" label="Category" fullWidth required value={formData.categoryName} onChange={handleChange} />
+            <TextField 
+              name="description" 
+              label="Description" 
+              fullWidth 
+              multiline 
+              rows={2} 
+              required 
+              value={formData.description} 
+              onChange={handleChange} 
+            />
 
-            <TextField name="description" label="Description" fullWidth multiline rows={2} required value={formData.description} onChange={handleChange} />
-
-            <TextField select name="priority" label="Priority" fullWidth value={formData.priority} onChange={handleChange}>
+            <TextField 
+              select 
+              name="priority" 
+              label="Priority" 
+              fullWidth 
+              value={formData.priority} 
+              onChange={handleChange}
+            >
               <MenuItem value="Low">Low</MenuItem>
               <MenuItem value="Normal">Normal</MenuItem>
               <MenuItem value="Urgent">Urgent</MenuItem>
               <MenuItem value="Critical">Critical</MenuItem>
             </TextField>
 
-            {/* ATTACHMENTS SECTION */}
             <Box sx={{ bgcolor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)", p: 2, borderRadius: "4px" }}>
               <Typography variant="h6" color={colors.greenAccent[400]} mb={1.5} fontWeight="bold">
                 Manage Attachments
               </Typography>
               
-              {/* Existing Files (Solid blue) */}
               {existingFiles.length > 0 && (
                  <Box mb={2}>
                     <Typography variant="caption" color={colors.grey[300]}>CURRENT FILES</Typography>
@@ -213,7 +216,6 @@ const handleUpdate = async (e) => {
                  </Box>
               )}
 
-              {/* New Files (Outlined green) */}
               {newFiles.length > 0 && (
                 <Box mb={2}>
                     <Typography variant="caption" color={colors.greenAccent[500]}>NEW FILES TO ADD</Typography>
@@ -243,7 +245,6 @@ const handleUpdate = async (e) => {
               </Button>
             </Box>
 
-            {/* Actions */}
             <Box display="flex" justifyContent="flex-end" gap="10px" mt={2}>
               <Button onClick={onClose} sx={{ color: colors.grey[100] }}>Cancel</Button>
               <Button
