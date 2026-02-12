@@ -30,6 +30,7 @@ import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined
 import MoveToInboxOutlinedIcon from '@mui/icons-material/MoveToInboxOutlined';
 import OutboxOutlinedIcon from '@mui/icons-material/OutboxOutlined';
 import FolderOpenOutlinedIcon from '@mui/icons-material/FolderOpenOutlined';
+import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined'; // CORRECT
 
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
@@ -101,13 +102,10 @@ const TheSidebar = () => {
     else if (path === "/calendar") setSelected("Calendar");
     else if (path === "/faq") setSelected("FAQ Page");
     else if (path === "/bar") setSelected("Bar Chart");
-<<<<<<< HEAD
-=======
     else if (path === "/pie") setSelected("Pie Chart");
     else if (path === "/line") setSelected("Line Chart");
     else if (path === "/home") setSelected("Home");
     else if (path === "/documentmanagement") setSelected("Document Management");
->>>>>>> 5c947f1 (MyDocuments updated, admin and user side)
     else if (path === "/department") setSelected("Department");
     else if (path === "/line") setSelected("Line Chart");
     else if (path === "/leavemanagement") setSelected("Leave Management");
@@ -236,14 +234,11 @@ const TheSidebar = () => {
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
                   {isCollapsed ? "Mgmt" : "Managment"}
                 </Typography>
-<<<<<<< HEAD
                 <Item title="Leave Management" to="/leavemanagement" icon={<EventNoteOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="Document Management" to="/mydocument" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="Document Tracker" to="/tracker" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
-=======
                 <Item title="Leave Management" to="/inbox" icon={<EventNoteOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="Document Management" to="/documentmanagement" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
->>>>>>> 5c947f1 (MyDocuments updated, admin and user side)
 
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
                   {isCollapsed ? "Lib" : "Library"}
@@ -265,15 +260,12 @@ const TheSidebar = () => {
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
                   {isCollapsed ? "Ops" : "Operations"}
                 </Typography>
-<<<<<<< HEAD
                 <Item title="Leave Application" to="/leaverequest" icon={<CalendarTodayOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="My Documents" to="/mydocument" icon={<FileUploadOutlinedIcon />} selected={selected} setSelected={setSelected} />
-=======
                 <Item title="Leave Application" to="/leave-apply" icon={<CalendarTodayOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="My Documents" to="/mydocument" icon={<InsertDriveFileOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="Inbox" to="/inbox" icon={<MoveToInboxOutlinedIcon />} selected={selected} setSelected={setSelected} />   
                 <Item title="Outbox" to="/outbox" icon={<OutboxOutlinedIcon />} selected={selected} setSelected={setSelected} />
->>>>>>> 5c947f1 (MyDocuments updated, admin and user side)
 
                 {/* c. Library */}
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>

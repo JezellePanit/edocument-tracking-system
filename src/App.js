@@ -27,14 +27,11 @@ import Line from "./scenes/line";
 import FAQ from "./scenes/faq";
 import Calendar from "./scenes/calendar";
 import Department from "./scenes/department";
-<<<<<<< HEAD
-import LeaveManagement from "./scenes/leavemanagement/Index";
+import LeaveManagement from "./scenes/leavemanagement";
 import Tracker from "./scenes/tracker";
 import LeaveRequestForm from "./scenes/leaverequest";
-=======
 import DocumentManagement from "./scenes/documentmanagement";
 import Home from "./scenes/home";
->>>>>>> 5c947f1 (MyDocuments updated, admin and user side)
 
 function App() {
   const [theme, colorMode] = useMode();
