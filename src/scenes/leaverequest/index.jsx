@@ -1,128 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, Card, Typography, Grid, TextField, MenuItem, 
-  Button, Checkbox, FormControlLabel, IconButton, useTheme
+import {
+  Box, Card, Typography, Grid, TextField, MenuItem, Button, Checkbox,
+  FormControlLabel, useTheme, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Chip, Dialog, DialogActions, DialogContent,
+  DialogContentText, DialogTitle, Divider, Stack
 } from '@mui/material';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
+import SendIcon from '@mui/icons-material/Send';
 import dayjs from 'dayjs';
 import Header from "../../components/Header";
 import { tokens } from "../../theme";
-
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip
-} from "@mui/material";
-
 
 const LeaveRequest = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
- const [history, setHistory] = useState([
-  {
-    id: 1,
-    leaveType: "Vacation Leave",
-    dateFrom: "Jan 10, 2026",
-    dateTo: "Jan 12, 2026",
-    days: 3,
-    status: "Approved"
-  },
-  {
-    id: 2,
-    leaveType: "Sick Leave",
-    dateFrom: "Feb 02, 2026",
-    dateTo: "Feb 02, 2026",
-    days: 1,
-    status: "Approved"
-  },
-  {
-    id: 3,
-    leaveType: "Mandatory Leave",
-    dateFrom: "Mar 15, 2026",
-    dateTo: "Mar 19, 2026",
-    days: 5,
-    status: "Pending"
-  },
-  {
-    id: 4,
-    leaveType: "Special Privilege Leave",
-    dateFrom: "Apr 05, 2026",
-    dateTo: "Apr 06, 2026",
-    days: 2,
-    status: "Rejected"
-  }
-]);
+  // --- STATE MANAGEMENT ---
+  const [history, setHistory] = useState([
+    { id: 1, leaveType: "Vacation Leave", dateFrom: "Jan 10, 2026", dateTo: "Jan 12, 2026", days: 3, status: "Approved" },
+    { id: 2, leaveType: "Sick Leave", dateFrom: "Feb 02, 2026", dateTo: "Feb 02, 2026", days: 1, status: "Approved" },
+  ]);
 
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    department: '',
-    leaveType: '',
-    approver: 'Immediate Supervisor',
-    startDate: dayjs('2023-06-03'),
-    endDate: dayjs('2023-06-05'),
-    reason: '',
-    onlyTomorrow: false,
-    cscForm: null
+    firstName: '', lastName: '', department: '', leaveType: '',
+    approver: 'Immediate Supervisor', startDate: dayjs(), endDate: dayjs(),
+    reason: '', onlyTomorrow: false, cscForm: null
   });
 
-  const handleTomorrowChange = (event) => {
-  const isChecked = event.target.checked;
-  const tomorrow = dayjs().add(1, 'day');
-
-  setFormData({
-    ...formData,
-    onlyTomorrow: isChecked,
-    // Kapag chineck, automatic set sa tomorrow. Kapag ni-uncheck, hayaan ang user.
-    startDate: isChecked ? tomorrow : formData.startDate,
-    endDate: isChecked ? tomorrow : formData.endDate,
-  });
-};
-
-const [openConfirm, setOpenConfirm] = useState(false);
-
-const handleOpenConfirm = () => setOpenConfirm(true);
-const handleCloseConfirm = () => setOpenConfirm(false);
-
-const handleSubmit = () => {
-  // 1. Gawa ng bagong object para sa table
-  const newRequest = {
-    id: history.length + 1, // Simple ID generation
-    leaveType: formData.leaveType || "Unspecified",
-    dateFrom: formData.startDate.format('MMM DD, YYYY'),
-    dateTo: formData.endDate.format('MMM DD, YYYY'),
-    days: totalDays, // Ito yung auto-computed days mo kanina
-    status: "Pending" // Default status
-  };
-
-  // 2. I-update ang history state (ilagay sa unahan para makita agad)
-  setHistory([newRequest, ...history]);
-
-  // 3. Isara ang confirmation dialog
-  setOpenConfirm(false);
-
-  // 4. (Optional) I-clear ang form para sa susunod na request
-  setFormData({
-    ...formData,
-    leaveType: '',
-    reason: '',
-    onlyTomorrow: false,
-    halfDay: false
-  });
-};
   const [totalDays, setTotalDays] = useState(0);
+  const [openConfirm, setOpenConfirm] = useState(false);
 
-  // Auto-compute Number of Days
+  // --- LOGIC / EFFECTS ---
   useEffect(() => {
     if (formData.startDate && formData.endDate) {
       const diff = formData.endDate.diff(formData.startDate, 'day') + 1;
@@ -130,343 +41,248 @@ const handleSubmit = () => {
     }
   }, [formData.startDate, formData.endDate]);
 
+  const handleTomorrowChange = (event) => {
+    const isChecked = event.target.checked;
+    const tomorrow = dayjs().add(1, 'day');
+    setFormData({
+      ...formData,
+      onlyTomorrow: isChecked,
+      startDate: isChecked ? tomorrow : formData.startDate,
+      endDate: isChecked ? tomorrow : formData.endDate,
+    });
+  };
+
+  const handleOpenConfirm = () => {
+    if (!formData.leaveType || !formData.reason) {
+      alert("Please fill in Leave Type and Reason");
+      return;
+    }
+    setOpenConfirm(true);
+  };
+
+  const handleCancel = () => {
+    setFormData({
+      firstName: '', lastName: '', department: '', leaveType: '',
+      approver: 'Immediate Supervisor', startDate: dayjs(), endDate: dayjs(),
+      reason: '', onlyTomorrow: false, cscForm: null
+    });
+  };
+
+  const handleSubmit = () => {
+    const newRequest = {
+      id: Date.now(),
+      leaveType: formData.leaveType || "Unspecified",
+      dateFrom: formData.startDate.format('MMM DD, YYYY'),
+      dateTo: formData.endDate.format('MMM DD, YYYY'),
+      days: totalDays,
+      status: "Pending"
+    };
+    setHistory([newRequest, ...history]);
+    setOpenConfirm(false);
+    handleCancel();
+  };
+
   return (
-    <Box m = '20px'>
-      <Header title="LEAVE APPLICATION" subtitle="Apply for leave and track your requests" />
-      
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-     <Box sx={{ p: 4, bgcolor: '#fafafa', minHeight: '100vh' }}>
+    <Box m="20px">
+      <Header title="LEAVE APPLICATION" subtitle="Submit your request and upload documentation" />
 
-        <Card 
-          sx={{ p: 4,
-          width: '50%',
-          height: 'fit-content',
-          borderRadius: 4, 
-          boxShadow: '0px 4px 20px rgba(0,0,0,0.05)' 
-          }}
-        >
-          <Box m = '20px' sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            mb: 4 
-          }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: 1, color: colors.greenAccent[400] }}>
-              APPLY LEAVE
-            </Typography>
-
-            {/* Download CSC Form 6 Button */}
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        
+        {/* MAIN APPLICATION CARD */}
+        <Card sx={{ p: 3, borderRadius: 4, boxShadow: '0px 4px 20px rgba(0,0,0,0.05)', mb: 4 }}>
+          <Grid container spacing={4}>
             
-            <Button
-              variant="outlined"
-              size="small"
-              component="a"
-              // I-paste dito ang link mula sa Google Drive
-              href="https://docs.google.com/spreadsheets/d/1SL584EBJgJ0P9ftRGG_KTmTyIczXRLcK/edit?usp=sharing&ouid=108104218776702114912&rtpof=true&sd=true" 
-              target="_blank" // Bubukas sa bagong tab para hindi mawala ang user sa app mo
-              rel="noopener noreferrer"
-              startIcon={<CloudUploadIcon sx={{ transform: 'rotate(180deg)' }} />}
-              sx={{ 
-                textTransform: 'none', 
-                borderRadius: 2,
-                color: 'white',
-                backgroundColor: colors.greenAccent[400],
-                fontWeight: 600,
-                '&:hover': {
-                  bgcolor: colors.grey[500],
-                }
-              }}
-            >
-              Download CSC Form 6
-            </Button>
-          </Box>
-          
-                
-        {/* Checkboxes */}
-        <Grid item xs={6}>
-          <FormControlLabel
-            control={
-              <Checkbox 
-                size="small" 
-                checked={formData.onlyTomorrow}
-                onChange={handleTomorrowChange}
-                sx={{ color: '#1a237e', '&.Mui-checked': { color: '#1a237e' } }} 
-              />
-            }
-            label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Only For Tomorrow</Typography>}
-          />
-        </Grid>
-       
+            {/* LEFT SECTION (3/4): COMBINED DETAILS */}
+            <Grid item xs={12} md={9}>
+              <Grid container spacing={3}>
+                {/* 1. Who is Applying? */}
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="h5" fontWeight={700} color={colors.greenAccent[400]} mb={2}>
+                    1. Applicant Information
+                  </Typography>
+                  <Stack spacing={2.5}>
+                    <Box>
+                      <Typography variant="caption" fontWeight={700}>FIRST NAME</Typography>
+                      <TextField fullWidth size="small" value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} />
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" fontWeight={700}>LAST NAME</Typography>
+                      <TextField fullWidth size="small" value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} />
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" fontWeight={700}>DEPARTMENT</Typography>
+                      <TextField select fullWidth size="small" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} SelectProps={{ displayEmpty: true }}>
+                        <MenuItem value="" disabled>Select Department</MenuItem>
+                        <MenuItem value="EO">Executive Office</MenuItem>
+                        <MenuItem value="Finance">Finance</MenuItem>
+                        <MenuItem value="IT">IT Systems</MenuItem>
+                        <MenuItem value="HR">Human Resources</MenuItem>
+                      </TextField>
+                    </Box>
+                  </Stack>
+                </Grid>
 
-            {/* SEPARATE CONTAINER: Employee Info */}
-        <Box sx={{ p: 3, bgcolor: '#f8f9fa', borderRadius: 3, mb: 3 }}>
-          <Grid container spacing={3}>
-            {/* First Name Input */}
-            <Grid item xs={12} md={6}>
-              <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>First Name</Typography>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Enter First Name"
-                // FIX: Dapat firstName ang gamit dito
-                value={formData.firstName} 
-                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                sx={{ bgcolor: '#fff', '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-              />
+                {/* 2. Leave Information */}
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ pl: { sm: 3 }, borderLeft: { sm: `1px solid ${colors.grey[700]}` } }}>
+                    <Typography variant="h5" fontWeight={700} color={colors.greenAccent[400]} mb={2}>
+                      2. Leave Details
+                    </Typography>
+                    <Stack spacing={2}>
+                      <Box>
+                        <Typography variant="caption" fontWeight={700}>LEAVE TYPE</Typography>
+                        <TextField select fullWidth size="small" value={formData.leaveType} onChange={(e) => setFormData({ ...formData, leaveType: e.target.value })}>
+                          <MenuItem value="Vacation">Vacation Leave</MenuItem>
+                          <MenuItem value="Sick">Sick Leave</MenuItem>
+                          <MenuItem value="Mandatory">Mandatory Leave</MenuItem>
+                          <MenuItem value="Special">Special Privilege</MenuItem>
+                        </TextField>
+                      </Box>
+                      
+                      <FormControlLabel
+                        control={<Checkbox checked={formData.onlyTomorrow} onChange={handleTomorrowChange} size="small" color="secondary" />}
+                        label={<Typography variant="caption" fontWeight={700}>ONLY FOR TOMORROW</Typography>}
+                      />
+
+                      <Grid container spacing={1}>
+                        <Grid item xs={6}>
+                          <DatePicker label="Start" value={formData.startDate} disabled={formData.onlyTomorrow} onChange={(v) => setFormData({ ...formData, startDate: v })} slotProps={{ textField: { size: 'small', fullWidth: true } }} />
+                        </Grid>
+                        <Grid item xs={6}>
+                          <DatePicker label="End" value={formData.endDate} disabled={formData.onlyTomorrow} onChange={(v) => setFormData({ ...formData, endDate: v })} slotProps={{ textField: { size: 'small', fullWidth: true } }} />
+                        </Grid>
+                      </Grid>
+
+                      <Box>
+                        <Typography variant="caption" fontWeight={700}>REASON / REMARKS</Typography>
+                        <TextField fullWidth multiline rows={2} placeholder="Brief reason..." value={formData.reason} onChange={(e) => setFormData({ ...formData, reason: e.target.value })} />
+                      </Box>
+                    </Stack>
+                  </Box>
+                </Grid>
+              </Grid>
             </Grid>
 
-           {/* Last Name Input */}
-            <Grid item xs={12} md={6}>
-              <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>Last Name</Typography>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Enter Last Name"
-                // FIX: Dapat lastName ang gamit dito
-                value={formData.lastName}
-                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                sx={{ bgcolor: '#fff', '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-              />
-            </Grid>
-
-            {/* Department Select Menu */}
-            <Grid item xs={12} md={6}>
-              <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>Department</Typography>
-              <TextField
-                select
-                fullWidth
-                size="small"
-                value={formData.department}
-                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                sx={{ bgcolor: '#fff', '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                SelectProps={{ displayEmpty: true }}
-              >
-                <MenuItem value="" disabled>Select Department</MenuItem>
-                <MenuItem value="EO">Executive Office</MenuItem>
-                {/* <MenuItem value="Admin">Administrative Department</MenuItem> */}
-                <MenuItem value="Finance">Finance</MenuItem>
-                <MenuItem value="Prodcurement">Procurement</MenuItem>
-                <MenuItem value="Trainer">Training Department</MenuItem>
-                <MenuItem value="Assessor">Assessment Department</MenuItem>
-                <MenuItem value="Legal">Legal Department</MenuItem>
-                <MenuItem value="IT">IT Systems Administration</MenuItem>
-                <Box sx={{ px: 2, py: 1, bgcolor: '#f0f7ff', fontWeight: 'bold', fontSize: '0.75rem', color: '#1a237e' }}>
-                  ADMINISTRATION
-                </Box>
-                <MenuItem value="Admin-HR" sx={{ pl: 4 }}> Human Resources</MenuItem>
-                <MenuItem value="Admin-Supply" sx={{ pl: 4 }}> Supply Records</MenuItem>
-                <MenuItem value="Admin-General" sx={{ pl: 4 }}> General Services</MenuItem>
-              </TextField>
-            </Grid>
-
-             <Grid item xs={12} sm={6}>
-              <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                Leave Type
-              </Typography>
-              <TextField
-                select
-                fullWidth
-                size="small"
-                value={formData.leaveType}
-                onChange={(e) =>
-                  setFormData({ ...formData, leaveType: e.target.value })
-                }
-              >
-                <MenuItem value="Vacation">Vacation Leave</MenuItem>
-                <MenuItem value="Sick">Sick Leave</MenuItem>
-                <MenuItem value="Maternity">Maternity/Paternity</MenuItem>
-                <MenuItem value="Mandatory">Mandatory/Forced Leave</MenuItem>
-                <MenuItem value="Study">Study Leave</MenuItem>
-                <MenuItem value="Special">Special Privilege Leave</MenuItem>
-                <MenuItem value="WithoutPay">Leave Without Pay</MenuItem>
-              </TextField>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                Approver
-              </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                value={formData.approver}
-                disabled
-                sx={{ bgcolor: '#fdfdfd' }}
-              />
-            </Grid>
-
-            {/* Date Range */}
-            <Grid item xs={12} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <DatePicker
-                label="Start Date"
-                value={formData.startDate}
-                disabled={formData.onlyTomorrow} // Disable kung "Tomorrow Only"
-                onChange={(val) => setFormData({...formData, startDate: val})}
-                slotProps={{ textField: { size: 'small', fullWidth: true } }}
-              />
-              <Typography variant="body2">To</Typography>
-              <DatePicker
-                label="End Date"
-                value={formData.endDate}
-                disabled={formData.onlyTomorrow} 
-                onChange={(val) => setFormData({...formData, endDate: val})}
-                slotProps={{ textField: { size: 'small', fullWidth: true } }}
-              />
-            </Grid>
-            {/* Reason */}
-            <Grid item xs={12} width={'100%'}>
-              <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>Reason for Leave</Typography>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                value={formData.reason}
-                onChange={(e) => setFormData({...formData, reason: e.target.value})}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
-              />
-            </Grid>
-
-            {/* Hybrid Step: CSC Form 6 Upload */}
-            <Grid item xs={12} width={'100%'}>
-              <Box sx={{ p: 2, border: '1px dashed #ccc', borderRadius: 3, textAlign: 'center', bgcolor: '#fcfcfc' }}>
-                <Typography variant="caption" display="block" sx={{ mb: 1, color: 'text.secondary' }}>
-                  Required: Attach completed and signed CSC Form 6 (PDF)
+            {/* RIGHT SECTION (1/4): DOCUMENTATION & ACTIONS */}
+            <Grid item xs={12} md={3}>
+              <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column', bgcolor: colors.primary[400], borderRadius: 3 }}>
+                <Typography variant="h5" fontWeight={700} color={colors.greenAccent[400]} mb={2}>
+                  3. Documents
                 </Typography>
-                <Button
-                  component="label"
-                  variant="text"
-                  startIcon={<CloudUploadIcon />}
-                  sx={{ color: '#40c4ff', textTransform: 'none' }}
-                >
-                  {formData.cscForm ? formData.cscForm.name : "Upload official document"}
-                  <input type="file" hidden accept=".pdf" onChange={(e) => setFormData({...formData, cscForm: e.target.files[0]})} />
-                </Button>
+                
+                <Box sx={{ flexGrow: 1 }}>
+                  <Typography variant="body2" mb={2} sx={{ opacity: 0.8, fontSize: '0.8rem' }}>
+                    Please attach your signed CSC Form 6.
+                  </Typography>
+                  
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    size="small"
+                    startIcon={<CloudDownloadIcon />}
+                    href="https://docs.google.com/spreadsheets/d/1SL584EBJgJ0P9ftRGG_KTmTyIczXRLcK/edit?usp=sharing"
+                    target="_blank"
+                    sx={{ mb: 2, color: colors.grey[100], borderColor: colors.grey[400], textTransform: 'none' }}
+                  >
+                    Download Form
+                  </Button>
+
+                  <Button
+                    component="label"
+                    variant="outlined"
+                    fullWidth
+                    startIcon={<CloudUploadIcon />}
+                    sx={{ 
+                      py: 3, 
+                      flexDirection: 'column', 
+                      gap: 1, 
+                      borderStyle: 'dashed', 
+                      borderColor: colors.greenAccent[400],
+                      color: colors.greenAccent[400],
+                      '&:hover': { borderStyle: 'dashed', bgcolor: 'rgba(76, 175, 80, 0.04)' }
+                    }}
+                  >
+                    <Typography variant="caption" align="center" sx={{ textTransform: 'none', fontWeight: 600 }}>
+                      {formData.cscForm ? formData.cscForm.name : "Upload Signed PDF"}
+                    </Typography>
+                    <input type="file" hidden accept=".pdf" onChange={(e) => setFormData({ ...formData, cscForm: e.target.files[0] })} />
+                  </Button>
+                </Box>
+
+                <Stack spacing={1.5} mt={3}>
+                  <Button 
+                    variant="contained" 
+                    fullWidth 
+                    startIcon={<SendIcon />}
+                    onClick={handleOpenConfirm}
+                    sx={{ bgcolor: colors.greenAccent[500], color: "#fff", fontWeight: 700, py: 1 }}
+                  >
+                    Apply Now
+                  </Button>
+                  <Button variant="text" size="small" fullWidth onClick={handleCancel} sx={{ color: colors.grey[300] }}>
+                    Reset Form
+                  </Button>
+                </Stack>
               </Box>
             </Grid>
 
           </Grid>
-        </Box>
-          
-
-          <Grid container spacing={3} display={'flex'} justifyContent={'flex-end'}>
-            {/* Actions */}
-            <Grid item xs={12} sx={{ display: 'flex', gap: 2, mt: 2 }}>
-              <Button 
-                variant="contained" 
-                sx={{ bgcolor: '#e0e0e0', color: '#616161', px: 4, borderRadius: 2, textTransform: 'none', boxShadow: 'none', '&:hover': { bgcolor: '#d5d5d5' } }}
-              >
-                Cancel
-              </Button>
-             <Button 
-              variant="contained" 
-              onClick={handleOpenConfirm} // Ito ang magbubukas ng Dialog
-              sx={{ 
-                bgcolor: '#4dd0e1', 
-                color: '#fff', 
-                px: 4, 
-                borderRadius: 2, 
-                textTransform: 'none', 
-                boxShadow: 'none', 
-                '&:hover': { bgcolor: '#26c6da' } 
-              }}
-            >
-              Apply
-            </Button>
-            </Grid>
-          </Grid>
-           
         </Card>
 
-       <Box
-  sx={{
-    width: "100%", // Gawing 100% para sakupin ang buong space ng Grid item
-    display: "flex",
-    justifyContent: "center",
-    p: 1 // Binawasan ko ang padding para mas lumapad pa ang card
-  }}
->
-  <Card
-    sx={{
-      p: 4,
-      width: "100%", // Dito mag-eexpand ang card
-      minHeight: "500px", // minHeight gamitin imbis na fixed height para humahaba pag madaming rows
-      borderRadius: 4,
-      boxShadow: "0px 4px 20px rgba(0,0,0,0.05)"
-    }}
-  >
-    <Typography variant="h4" fontWeight={600} mb={3}>
-      My Leave History
-    </Typography>
+        {/* HISTORY TABLE */}
+        <Card sx={{ p: 3, borderRadius: 4 }}>
+          <Typography variant="h5" fontWeight={600} mb={2}>Recent Leave Requests</Typography>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ bgcolor: colors.primary[400] }}>
+                  <TableCell><strong>Leave Type</strong></TableCell>
+                  <TableCell><strong>Duration</strong></TableCell>
+                  <TableCell align="center"><strong>Days</strong></TableCell>
+                  <TableCell><strong>Status</strong></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {history.map((leave) => (
+                  <TableRow key={leave.id} hover>
+                    <TableCell>{leave.leaveType}</TableCell>
+                    <TableCell>{leave.dateFrom} - {leave.dateTo}</TableCell>
+                    <TableCell align="center">{leave.days}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={leave.status} 
+                        size="small" 
+                        sx={{ 
+                          fontWeight: 600,
+                          bgcolor: leave.status === "Approved" ? colors.greenAccent[700] : colors.redAccent[700],
+                          color: "#fff"
+                        }} 
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
 
-    <TableContainer>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell><strong>Leave Type</strong></TableCell>
-            <TableCell><strong>From</strong></TableCell>
-            <TableCell><strong>To</strong></TableCell>
-            <TableCell><strong>Days</strong></TableCell>
-            <TableCell><strong>Status</strong></TableCell>
-          </TableRow>
-        </TableHead>
+        {/* CONFIRMATION DIALOG */}
+        <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)} PaperProps={{ sx: { borderRadius: 3 } }}>
+          <DialogTitle sx={{ fontWeight: 700 }}>Confirm Submission</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to apply for <strong>{totalDays} day(s)</strong> of {formData.leaveType}?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ p: 3 }}>
+            <Button onClick={() => setOpenConfirm(false)} color="inherit">Cancel</Button>
+            <Button onClick={handleSubmit} variant="contained" sx={{ bgcolor: colors.greenAccent[500] }}>
+              Confirm & Submit
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-        <TableBody>
-  {history.map((leave) => (
-    <TableRow key={leave.id}>
-      <TableCell>{leave.leaveType}</TableCell>
-      <TableCell>{leave.dateFrom}</TableCell>
-      <TableCell>{leave.dateTo}</TableCell>
-      <TableCell>{leave.days}</TableCell>
-      <TableCell>
-        <Chip
-          label={leave.status}
-          color={
-            leave.status === "Approved" ? "success" : 
-            leave.status === "Pending" ? "warning" : "error"
-          }
-          size="small"
-        />
-      </TableCell>
-    </TableRow>
-  ))}
-</TableBody>
-      </Table>
-    </TableContainer>
-  </Card>
-</Box>
-
-     
-      </Box>
-      <Dialog
-  open={openConfirm}
-  onClose={handleCloseConfirm}
-  PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
->
-  <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.2rem' }}>
-    Confirm Submission
-  </DialogTitle>
-  <DialogContent>
-    <DialogContentText>
-      Are you sure you want to apply for leave from <b>{formData.startDate?.format('MMM DD, YYYY')}</b> to <b>{formData.endDate?.format('MMM DD, YYYY')}</b>? Please ensure all details are correct.
-    </DialogContentText>
-  </DialogContent>
-  <DialogActions sx={{ pb: 2, px: 3 }}>
-    <Button onClick={handleCloseConfirm} sx={{ color: colors.grey[500], fontWeight: 600 }}>
-      Cancel
-    </Button>
-    <Button 
-      onClick={handleSubmit} 
-      variant="contained"
-      sx={{ bgcolor: '#4dd0e1', color: '#fff', borderRadius: 2, px: 3, '&:hover': { bgcolor: '#26c6da' } }}
-    >
-      Yes, Submit
-    </Button>
-  </DialogActions>
-</Dialog>
-    </LocalizationProvider>
-
-    
-    
+      </LocalizationProvider>
     </Box>
   );
 };

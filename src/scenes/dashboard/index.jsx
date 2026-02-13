@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { 
   Box, Typography, Card, Avatar,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
-  CssBaseline, useTheme, MenuItem, FormControl, Select
+  CssBaseline, useTheme, MenuItem, FormControl, Select, Stack,
+  Chip // Added missing import to fix ESLint error
 } from '@mui/material';
 import DescriptionIcon from '@mui/icons-material/Description';
 import { tokens } from "../../theme"; 
@@ -36,37 +37,37 @@ const SAMPLE_DOCS = [
 const AttendanceDashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const isDark = theme.palette.mode === 'dark';
 
   // --- STATE ---
   const [docType, setDocType] = useState('All');
 
-  // --- LOGIC: Filtered Docs ---
+  // --- LOGIC ---
   const filteredDocs = docType === 'All' 
     ? SAMPLE_DOCS 
     : SAMPLE_DOCS.filter(doc => doc.type === docType);
 
-  // --- LOGIC: Count people currently in LEAVE_DATA ---
   const totalOnLeave = LEAVE_DATA.length;
 
   return (
     <Box sx={{
       width: "100%",
-      height: "calc(100vh - 40px)", 
+      height: "100vh", 
       display: "flex",
       flexDirection: "column",
-      p: "20px",
-      gap: "20px",
+      p: "24px",
+      gap: "24px",
       overflow: "hidden",
-      bgcolor: theme.palette.background.default
+      bgcolor: isDark ? colors.primary[500] : "#f4f7f9"
     }}>
       <CssBaseline />
       
       {/* --- HEADER --- */}
       <Box>
-        <Typography variant="h2" color={colors.grey[100]} fontWeight="bold">
+        <Typography variant="h2" color={colors.grey[100]} fontWeight="800" sx={{ letterSpacing: "-1px" }}>
           DASHBOARD
         </Typography>
-        <Typography variant="h5" color={colors.greenAccent[400]}>
+        <Typography variant="h5" color={colors.greenAccent[400]} fontWeight="500">
           Document Overview & Attendance
         </Typography>
       </Box>
@@ -78,52 +79,49 @@ const AttendanceDashboard = () => {
             flex: 1,
             p: 3,
             backgroundColor: colors.primary[400],
-            borderRadius: '16px',
+            borderRadius: '24px',
             backgroundImage: 'none',
-            border: `1px solid ${colors.primary[500]}`,
+            border: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}`,
+            boxShadow: isDark ? "0 10px 30px rgba(0,0,0,0.3)" : "0 4px 12px rgba(0,0,0,0.05)",
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
             alignItems: 'center',
             textAlign: 'center'
           }}>
             <Box sx={{ 
-              display: 'inline-flex', 
-              px: 1.5, py: 0.5, 
-              borderRadius: '10px', 
-              bgcolor: `${stat.color}26`, 
-              color: stat.color, 
-              mb: 1, 
-              fontSize: '0.75rem', 
-              fontWeight: 700
+              display: 'inline-flex', px: 2, py: 0.5, borderRadius: '8px', 
+              bgcolor: `${stat.color}15`, color: stat.color, 
+              mb: 1.5, fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase'
             }}>
               {stat.label}
             </Box>
-            <Typography variant="h2" fontWeight="800" color={colors.grey[100]}>
+            <Typography variant="h1" fontWeight="800" color={colors.grey[100]}>
               {stat.value}
             </Typography>
-            <Typography variant="caption" color={colors.greenAccent[500]}>
-              Total Requests
+            <Typography variant="caption" color={colors.grey[400]} sx={{ fontWeight: 500 }}>
+              Current Status
             </Typography>
           </Card>
         ))}
       </Box>
 
       {/* --- MAIN BODY SECTION --- */}
-      <Box sx={{ display: 'flex', flexGrow: 1, gap: '20px', minHeight: 0, width: '100%' }}>
+      <Box sx={{ display: 'flex', flexGrow: 1, gap: '24px', minHeight: 0, width: '100%' }}>
         
         {/* LEFT CARD: Document Explorer */}
         <Card sx={{
           flex: 1.5, 
-          p: 4,
+          p: 3,
           backgroundColor: colors.primary[400],
-          borderRadius: '20px',
+          borderRadius: '28px',
           backgroundImage: 'none',
+          border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)"}`,
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          boxShadow: isDark ? "0 15px 40px rgba(0,0,0,0.4)" : "0 8px 24px rgba(0,0,0,0.05)"
         }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h5" fontWeight="700" color={colors.grey[100]}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3} px={1}>
+            <Typography variant="h4" fontWeight="800" color={colors.grey[100]}>
               Document Explorer
             </Typography>
 
@@ -133,15 +131,11 @@ const AttendanceDashboard = () => {
                 onChange={(e) => setDocType(e.target.value)}
                 sx={{
                   color: colors.grey[100],
-                  bgcolor: theme.palette.mode === 'dark' ? colors.primary[500] : colors.grey[900],
-                  borderRadius: "8px",
-                  "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+                  bgcolor: isDark ? "rgba(255,255,255,0.03)" : "#fff",
+                  borderRadius: "12px",
+                  fontWeight: 600,
+                  "& .MuiOutlinedInput-notchedOutline": { border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid #eee" },
                   "& .MuiSvgIcon-root": { color: colors.grey[100] }
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: { bgcolor: colors.primary[400], backgroundImage: "none" }
-                  }
                 }}
               >
                 <MenuItem value="All">All Documents</MenuItem>
@@ -150,7 +144,7 @@ const AttendanceDashboard = () => {
                 <MenuItem value="Notice">Notice</MenuItem>
               </Select>
             </FormControl>
-          </Box>
+          </Stack>
           
           <Box sx={{ flexGrow: 1, overflow: 'auto', pr: 1 }}>
             {filteredDocs.map((doc) => (
@@ -161,24 +155,31 @@ const AttendanceDashboard = () => {
                   alignItems: 'center',
                   p: 2,
                   mb: 1.5,
-                  borderRadius: '12px',
-                  bgcolor: theme.palette.mode === 'dark' ? colors.primary[500] : colors.grey[900],
-                  border: `1px solid ${colors.primary[600]}`,
+                  borderRadius: '16px',
+                  bgcolor: isDark ? "rgba(255,255,255,0.02)" : "#fff",
+                  border: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "#f0f0f0"}`,
+                  transition: "all 0.2s ease",
                   '&:hover': { 
-                    bgcolor: theme.palette.mode === 'dark' ? colors.primary[600] : colors.grey[800],
-                    cursor: 'pointer' 
+                    bgcolor: isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(0,0,0,0.02)",
+                    transform: "translateX(6px)",
+                    cursor: 'pointer',
+                    borderColor: colors.blueAccent[500]
                   }
                 }}
               >
-                <Avatar sx={{ bgcolor: colors.blueAccent[600], mr: 2 }}>
-                  <DescriptionIcon sx={{ color: "#fff" }} />
+                <Avatar sx={{ 
+                  bgcolor: isDark ? `${colors.blueAccent[600]}33` : colors.blueAccent[100], 
+                  mr: 2, 
+                  border: `1px solid ${colors.blueAccent[500]}66` 
+                }}>
+                  <DescriptionIcon sx={{ color: colors.blueAccent[400] }} />
                 </Avatar>
                 <Box>
-                  <Typography variant="body1" fontWeight="600" color={colors.grey[100]}>
+                  <Typography variant="body1" fontWeight="700" color={colors.grey[100]}>
                     {doc.title}
                   </Typography>
-                  <Typography variant="caption" color={colors.greenAccent[400]}>
-                    {doc.type} • Created {doc.date}
+                  <Typography variant="caption" color={colors.grey[400]}>
+                    <span style={{ color: colors.greenAccent[400], fontWeight: 700 }}>{doc.type}</span> • Created {doc.date}
                   </Typography>
                 </Box>
               </Box>
@@ -191,57 +192,67 @@ const AttendanceDashboard = () => {
           flex: 1, 
           p: 3,
           backgroundColor: colors.primary[400],
-          borderRadius: '20px',
+          borderRadius: '28px',
           backgroundImage: 'none',
+          border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)"}`,
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden'
+          boxShadow: isDark ? "0 15px 40px rgba(0,0,0,0.4)" : "0 8px 24px rgba(0,0,0,0.05)"
         }}>
-          {/* HEADER WITH DYNAMIC COUNT BADGE */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-            <Typography variant="h5" fontWeight="700" color={colors.grey[100]}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+            <Typography variant="h4" fontWeight="800" color={colors.grey[100]}>
               Who's Out
             </Typography>
-            <Box sx={{ 
-              bgcolor: colors.blueAccent[600], 
-              color: "#fff", 
-              px: 1.2, 
-              py: 0.2, 
-              borderRadius: '50px', 
-              fontSize: '0.85rem', 
-              fontWeight: 'bold' 
-            }}>
-              {totalOnLeave}
-            </Box>
+            <Chip 
+              label={totalOnLeave} 
+              size="small" 
+              sx={{ 
+                bgcolor: colors.blueAccent[600], 
+                color: "#fff", 
+                fontWeight: 900, 
+                borderRadius: '8px' 
+              }} 
+            />
           </Box>
-
-          <Typography variant="caption" color={colors.greenAccent[400]} mb={2}>
-            Recent Absences
-          </Typography>
           
           <TableContainer sx={{ flexGrow: 1, overflow: 'auto' }}>
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ bgcolor: colors.primary[400], color: colors.grey[100], fontWeight: 'bold', borderBottom: `2px solid ${colors.primary[500]}` }}>Employee</TableCell>
-                  <TableCell sx={{ bgcolor: colors.primary[400], color: colors.grey[100], fontWeight: 'bold', borderBottom: `2px solid ${colors.primary[500]}` }}>Dates</TableCell>
+                  <TableCell sx={{ bgcolor: colors.primary[400], color: colors.grey[400], fontWeight: 800, fontSize: '0.7rem', borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#eee"}` }}>EMPLOYEE</TableCell>
+                  <TableCell sx={{ bgcolor: colors.primary[400], color: colors.grey[400], fontWeight: 800, fontSize: '0.7rem', borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "#eee"}` }}>PERIOD</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {LEAVE_DATA.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell sx={{ py: 1.5, borderBottom: `1px solid ${colors.primary[500]}` }}>
-                      <Box display="flex" alignItems="center" gap={1.5}>
-                        <Avatar sx={{ width: 28, height: 28, bgcolor: colors.blueAccent[400], fontSize: '0.8rem' }}>
+                  <TableRow 
+                    key={row.id}
+                    sx={{ 
+                      transition: "background-color 0.2s ease",
+                      '&:hover': { bgcolor: isDark ? "rgba(255, 255, 255, 0.04)" : "rgba(0, 0, 0, 0.02)" }
+                    }}
+                  >
+                    <TableCell sx={{ py: 2, borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.03)" : "#f5f5f5"}` }}>
+                      <Stack direction="row" alignItems="center" spacing={1.5}>
+                        <Avatar sx={{ width: 32, height: 32, bgcolor: colors.blueAccent[400], fontSize: '0.8rem', fontWeight: 700 }}>
                           {row.name.charAt(0)}
                         </Avatar>
-                        <Typography variant="body2" fontWeight="600" color={colors.grey[100]}>
+                        <Typography variant="body2" fontWeight="700" color={colors.grey[100]}>
                           {row.name}
                         </Typography>
-                      </Box>
+                      </Stack>
                     </TableCell>
-                    <TableCell sx={{ borderBottom: `1px solid ${colors.primary[500]}` }}>
-                      <Typography variant="caption" color={colors.grey[100]}>
+                    <TableCell sx={{ borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.03)" : "#f5f5f5"}` }}>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          bgcolor: isDark ? "rgba(0,0,0,0.2)" : "#f0f0f0", 
+                          px: 1, py: 0.5, 
+                          borderRadius: '6px', 
+                          color: colors.grey[100], 
+                          fontWeight: 600 
+                        }}
+                      >
                         {row.from} - {row.to}
                       </Typography>
                     </TableCell>
@@ -251,7 +262,6 @@ const AttendanceDashboard = () => {
             </Table>
           </TableContainer>
         </Card>
-
       </Box>
     </Box>
   );
