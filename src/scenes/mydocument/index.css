@@ -96,14 +96,14 @@
 
 /* Deleting - Red */
 .delete-row {
-  background-color: rgba(244, 67, 54, 0.4) !important; /* Soft Red */
-  transition: background-color 0.2s ease;
+    background-color: rgba(255, 0, 0, 0.2) !important; /* Soft transparent red */
+    transition: background-color 0.3s ease;
 }
 
-/* This is the "flash" effect used inside handleDeleteConfirm */
-.delete-flash {
-  background-color: #d32f2f !important; /* Bright Red */
-  transition: background-color 0.1s ease;
+/* The state when the delete is CONFIRMED (the flash) */
+.delete-flash-row {
+    background-color: #f44336 !important; /* Solid bright red */
+    transition: background-color 0.1s ease;
 }
 
 @keyframes pulse-add {

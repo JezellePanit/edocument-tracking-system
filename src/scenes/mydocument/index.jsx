@@ -126,7 +126,7 @@ useEffect(() => {
   // Handle Delete (Highlighting red before it vanishes)
   const handleDeleteConfirm = (docId) => {
     setHighlightedRowId(docId);
-    setActionType("delete");
+    setActionType("delete-flash");
     
     setTimeout(() => {
       setDocuments((prevDocs) => prevDocs.filter(d => d.id !== docId));
@@ -445,12 +445,12 @@ return (
         onConfirm={() => {
           handleDeleteConfirm(docToDelete.id);
           // 1. Close the modal immediately
-          setIsDeleteModalOpen(false);
-          setDocToDelete(null);
+          // setIsDeleteModalOpen(false);
+          // setDocToDelete(null);
           
           // 2. OPTIONAL: Manually filter the local state for an "instant" vanish
           // This makes the row disappear BEFORE the server even responds.
-          setDocuments((prevDocs) => prevDocs.filter(d => d.id !== docToDelete.id));
+          // setDocuments((prevDocs) => prevDocs.filter(d => d.id !== docToDelete.id));
           
           console.log("Document removed from UI");
         }}

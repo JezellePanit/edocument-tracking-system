@@ -137,7 +137,18 @@ const Outbox = ({ searchTerm = "" }) => {
       flex: 1,
       renderCell: (params) => (
         <Box display="flex" alignItems="center" height="100%">
-          <Chip label={params.value || "General"} variant="outlined" size="small" />
+          <Chip 
+            label={params.value || "General"} 
+            size="small" 
+            sx={{ 
+              borderRadius: "4px", 
+              backgroundColor: colors.primary[400],
+              border: `1px solid ${colors.blueAccent[700]}`,
+              color: colors.grey[100],
+              fontWeight: "bold",
+              minWidth: "100px" // Ensures consistent length
+            }} 
+          />
         </Box>
       )
     },
@@ -174,12 +185,10 @@ const Outbox = ({ searchTerm = "" }) => {
       )
     },
 
-    { 
+  { 
       field: "priority", 
       headerName: "Priority", 
       flex: 1,
-      headerAlign: "center",
-      align: "center",
       renderCell: (params) => {
         const priority = params.value || "Normal";
         let chipColor;
@@ -189,17 +198,29 @@ const Outbox = ({ searchTerm = "" }) => {
           case "Low": chipColor = colors.greenAccent[600]; break;
           default: chipColor = colors.blueAccent[700];
         }
+
         return (
-          <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-            <Chip
-              label={priority}
-              size="small"
-              sx={{ backgroundColor: chipColor, color: colors.grey[100], borderRadius: "4px" }}
-            />
-          </Box>
+          <Chip
+            label={priority}
+            size="small"
+            sx={{
+              backgroundColor: chipColor,
+              color: colors.grey[100],
+              fontWeight: "bold",
+              borderRadius: "4px",
+              minWidth: "80px", // Standard box length
+              animation: priority === "Critical" ? "pulse 2s infinite" : "none",
+              "@keyframes pulse": {
+                "0%": { opacity: 1 },
+                "50%": { opacity: 0.7 },
+                "100%": { opacity: 1 },
+              }
+            }}
+          />
         );
       }
     },
+
     { 
       field: "displayDate", 
       headerName: "Date Sent", 
