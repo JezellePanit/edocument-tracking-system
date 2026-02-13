@@ -22,7 +22,7 @@ import MyDocument from "./scenes/mydocument";
 import Contacts from "./scenes/contacts";
 import Inbox from "./scenes/inbox";
 import Outbox from "./scenes/outbox";
-import Bar from "./scenes/bar";
+import Employee from "./scenes/employee";
 import Line from "./scenes/line";
 import FAQ from "./scenes/faq";
 import Calendar from "./scenes/calendar";
@@ -70,7 +70,7 @@ function App() {
                   <Route path="/mydocument" element={<MyDocument searchTerm={searchTerm}/>} />
                   <Route path="/inbox" element={<Inbox searchTerm={searchTerm}/>} />
                   <Route path="/outbox" element={<Outbox searchTerm={searchTerm}/>} />
-                  <Route path="/bar" element={<Bar searchTerm={searchTerm}/>} />
+                  <Route path="/employee" element={<Employee searchTerm={searchTerm}/>} />
                   <Route path="/line" element={<Line searchTerm={searchTerm}/>} />
                   <Route path="/faq" element={<FAQ searchTerm={searchTerm}/>} />
                   <Route path="/calendar" element={<Calendar searchTerm={searchTerm}/>} />

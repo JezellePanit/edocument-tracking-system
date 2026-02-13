@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
-  Container, Grid, Card, CardContent, Avatar, Typography, 
-  InputBase, Box, IconButton, Skeleton, useTheme,
+  Grid, Card, CardContent, Avatar, Typography, 
+  InputBase, Box, IconButton, useTheme,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button
 } from '@mui/material';
 import Header from "../../components/Header";
@@ -15,37 +15,28 @@ const MOCK_DATA = [
   { id: 3, empId: 'EMP003', name: 'Emily Davis', role: 'HR Manager', department: 'Administrative Office' },
   { id: 4, empId: 'EMP004', name: 'James Wilson', role: 'Designer', department: 'Finance' },
   { id: 5, empId: 'EMP005', name: 'Lisa Anderson', role: 'Marketing Lead', department: 'Procurement' },
-  // ... add more mock data as needed to match your table image
 ];
 
 const Department = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  
-  // Change viewMode to store the selected department name
   const [selectedDept, setSelectedDept] = useState(null); 
   
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // 1. Helper function to count employees per department
+  // Helper function to count employees per department
   const getEmployeeCount = (deptName) => {
     return MOCK_DATA.filter(emp => emp.department === deptName).length;
   };
 
-  // Filter 1: Filter the CARDS based on search input
+  // Filter Departments for Grid View
   const displayDepartments = [
     'Executive Office', 'Administrative Office', 'Finance', 
     'Procurement', 'Training Department', 'Assessment Department', 
     'Legal Department', 'IT Systems Administration'
   ].filter(dept => dept.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  // Filter 2: Filter the TABLE rows based on the clicked department
+  // Filter Employees for Table View
   const tableData = MOCK_DATA.filter(emp => emp.department === selectedDept);
 
   return (
@@ -67,7 +58,7 @@ const Department = () => {
       </Box>
 
       {selectedDept ? (
-        /* TABLE VIEW (Filtered by Department) */
+        /* --- TABLE VIEW --- */
         <Paper sx={{ width: '100%', p: 2, backgroundColor: colors.primary[400] }}>
           <Button 
             startIcon={<ArrowBackIcon />} 
@@ -98,54 +89,45 @@ const Department = () => {
           </TableContainer>
         </Paper>
       ) : (
-        /* GRID VIEW (All Departments) */
+        /* --- GRID VIEW --- */
         <Grid container spacing={4} justifyContent="center">
-          {loading ? (
-            Array.from(new Array(4)).map((_, i) => (
-              <Grid item xs={12} sm={6} md={3} key={i}>
-                <Skeleton variant="rectangular" height={320} sx={{ borderRadius: 5 }} />
+          {displayDepartments.map((deptName) => {
+            const count = getEmployeeCount(deptName);
+            
+            return (
+              <Grid item xs={12} sm={6} md={3} key={deptName} display="flex" justifyContent="center">
+                <Card 
+                  onClick={() => setSelectedDept(deptName)}
+                  sx={{ 
+                    height: '320px',
+                    width: '350px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: '0.3s', 
+                    '&:hover': { transform: 'translateY(-5px)', boxShadow: 10 },
+                    backgroundColor: colors.primary[400],
+                    borderRadius: 5,
+                    p: 2
+                  }}
+                >
+                  <Avatar sx={{ width: 80, height: 80, mb: 2, bgcolor: colors.grey[100] }}>
+                    {deptName[0]}
+                  </Avatar>
+                  <CardContent sx={{ textAlign: 'center' }}>
+                    <Typography variant="h5" fontWeight="600" color={colors.grey[100]}>
+                      {deptName}
+                    </Typography>
+                    <Typography variant='body2' sx={{ color: colors.greenAccent?.[500] || 'green', mt: 1 }}>
+                      {count === 1 ? '1 Employee' : `${count} Employees`}
+                    </Typography>
+                  </CardContent>
+                </Card>
               </Grid>
-            ))
-          ) : (
-            displayDepartments.map((deptName) => {
-              // Calculate count INSIDE the map so it's fresh for every card
-              const count = getEmployeeCount(deptName);
-              
-              return (
-                <Grid item xs={12} sm={6} md={3} key={deptName} display="flex" justifyContent="center">
-                  <Card 
-                    onClick={() => setSelectedDept(deptName)}
-                    sx={{ 
-                      height: '320px',
-                      width: '350px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      transition: '0.3s', 
-                      '&:hover': { transform: 'translateY(-5px)', boxShadow: 10 },
-                      backgroundColor: colors.primary[400],
-                      borderRadius: 5,
-                      p: 2
-                    }}
-                  >
-                    <Avatar sx={{ width: 80, height: 80, mb: 2, bgcolor: colors.grey[100] }}>
-                      {deptName[0]}
-                    </Avatar>
-                    <CardContent sx={{ textAlign: 'center' }}>
-                      <Typography variant="h5" fontWeight="600" color={colors.grey[100]}>
-                        {deptName}
-                      </Typography>
-                      <Typography variant='body2' sx={{ color: colors.greenAccent?.[500] || 'green' }}>
-                        {count === 1 ? '1 Employee' : `${count} Employees`}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              );
-            })
-          )}
+            );
+          })}
         </Grid>
       )}
     </Box>
