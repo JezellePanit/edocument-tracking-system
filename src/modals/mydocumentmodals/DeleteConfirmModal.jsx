@@ -19,39 +19,41 @@ const handleDelete = async () => {
   setLoading(true);
 
   try {
-    // 1. Remove files from Supabase Storage
+    // 1. Delete from Firestore FIRST
+    // This triggers your onSnapshot in MyDocument to remove the row immediately
+    const docId = docData.id;
+    await deleteDoc(doc(db, "documents", docId));
+
+    // 2. Trigger UI Cleanup immediately
+    // We call these NOW so the modal closes while Supabase is still working
+    onConfirm(); 
+    onClose();
+
+    // 3. Clean up Supabase in the background
     if (docData.files && docData.files.length > 0) {
       const filesToRemove = docData.files.map((file) => {
-        // This splits the URL and takes ONLY the part after the bucket name
         const parts = file.url.split('/documents/');
         return parts[parts.length - 1]; 
       });
 
-      // LOG THIS: Open your browser console (F12) and check this output
-      console.log("Bucket Name: documents");
-      console.log("Attempting to remove these specific paths:", filesToRemove);
+      console.log("Cleaning up storage for:", filesToRemove);
 
-      const { data, error: storageError } = await supabase.storage
-        .from('documents') // MUST match your bucket name exactly
+      const { error: storageError } = await supabase.storage
+        .from('documents') 
         .remove(filesToRemove);
 
       if (storageError) {
-        console.error("Supabase Storage Error:", storageError.message);
-      } else {
-        console.log("Supabase deletion success. Data returned:", data);
+        console.error("Supabase Storage Error (Background):", storageError.message);
       }
     }
-
-    // 2. Delete the record from Firestore
-    await deleteDoc(doc(db, "documents", docData.id));
     
-    // 3. UI Cleanup
-    onConfirm(); // Refreshes the list in Invoices.jsx
-    onClose();
+    // NOTE: Removed the extra code here that was causing errors!
+
   } catch (error) {
     console.error("Error during deletion process:", error);
     alert("An error occurred while deleting.");
   } finally {
+    // This is safe to leave here, but technically the modal is already closed
     setLoading(false);
   }
 };

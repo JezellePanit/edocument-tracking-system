@@ -11,7 +11,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import "./DocumentModal.css";
 
-export const DocumentModal = ({ open, onClose, onDocumentAdded }) => {
+const DocumentModal = ({ open, onClose, onDocumentAdded }) => {
   const [userDept, setUserDept] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   
@@ -143,7 +143,7 @@ const handleSubmit = async (e) => {
       }
 
       // 5. Save to Firestore
-      await addDoc(collection(db, "documents"), {
+      const docRef = await addDoc(collection(db, "documents"), {
         ...formData,
         documentId: generatedTrackingId,
         categoryName: "Uncategorized",
@@ -158,15 +158,20 @@ const handleSubmit = async (e) => {
         createdAt: serverTimestamp(),
       });
 
-      setShowSuccess(true);
-      onDocumentAdded();
-      handleClose();
+      // 6. Show success message and refresh list
+        resetForm();      // Clear the inputs
+        onClose();        // Close the Input Modal
+        setShowSuccess(true); // Show the "Checkmark" Success Modal
+        
+        // This notifies the parent table that a new doc exists
+        if (onDocumentAdded) onDocumentAdded(docRef.id); 
+
     } catch (error) {
-      alert("Error saving documents: " + error.message);
+        alert("Error saving documents: " + error.message);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   return (
     <>
