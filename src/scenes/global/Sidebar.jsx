@@ -253,7 +253,7 @@ const TheSidebar = () => {
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
                   {isCollapsed ? "Main" : "Main"}
                 </Typography>
-                <Item title="Home" to="/homepage" icon={<HomeOutlinedIcon />} selected={selected} setSelected={setSelected} />
+                <Item title="Home" to="/home" icon={<HomeOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
                 {/* b. Operations) */}
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
