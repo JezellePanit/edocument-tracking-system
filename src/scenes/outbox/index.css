@@ -1,0 +1,28 @@
+/* Green highlight for Sending, Adding, or Viewing */
+.sending-row,
+.add-row,
+.view-row {
+  background-color: #388e3c !important; /* Material Green 700 */
+  color: white !important;
+  transition: background-color 0.4s ease;
+}
+
+/* Yellow/Orange highlight for Editing */
+.edit-row {
+  background-color: #f57c00 !important; /* Material Orange 700 */
+  color: white !important;
+  transition: background-color 0.4s ease;
+}
+
+/* Red highlight for Deletion (before it disappears) */
+.delete-flash-row, 
+.delete-row {
+  background-color: #d32f2f !important; /* Material Red 700 */
+  color: white !important;
+  transition: background-color 0.3s ease;
+}
+
+/* Optional: Smooth transition for all rows */
+.MuiDataGrid-row {
+  transition: background-color 0.3s ease;
+}

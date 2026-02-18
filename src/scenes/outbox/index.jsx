@@ -4,7 +4,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
 import { db, auth } from "../../firebaseConfig";
-import { collection, query, where, onSnapshot, orderBy, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy, doc, getDoc, updateDoc } from "firebase/firestore";
 import VisibilityIcon from '@mui/icons-material/Visibility'; 
 import DeleteIcon from "@mui/icons-material/Delete";
 import DocumentMDetailsModal from "../../modals/outboxmodals/ViewOutboxModal";
@@ -21,13 +21,15 @@ const Outbox = ({ searchTerm = "" }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [docToDelete, setDocToDelete] = useState(null);
 
+  // --- HIGHLIGHT STATES ---
+  const [highlightedRowId, setHighlightedRowId] = useState(null);
+  const [actionType, setActionType] = useState(""); 
+
   const currentUser = auth.currentUser;
 
   // --- DEPARTMENT FORMATTING LOGIC ---
   const formatDepartmentName = (dept) => {
     if (!dept) return "N/A";
-    
-    // Create a map of short names to full display names
     const deptMap = {
       "executive": "Executive Office",
       "it": "IT / System Admin",
@@ -39,17 +41,11 @@ const Outbox = ({ searchTerm = "" }) => {
       "assessment": "Assessment Section",
     };
 
-  const searchKey = dept.toLowerCase().trim();
-    
-    // 1. Check the map first
+    const searchKey = dept.toLowerCase().trim();
     if (deptMap[searchKey]) return deptMap[searchKey];
-
-    // 2. If it already contains "Office" or "Department", just capitalize it properly
     if (searchKey.includes("office") || searchKey.includes("department")) {
         return dept.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
     }
-
-    // 3. Fallback: Capitalize first letter and add "Office" (or just return capitalized)
     return dept.charAt(0).toUpperCase() + dept.slice(1).toLowerCase();
   };
 
@@ -97,6 +93,40 @@ const Outbox = ({ searchTerm = "" }) => {
     return () => unsubscribe();
   }, [currentUser]);
 
+  // --- HANDLERS ---
+  const handleView = (row) => {
+    setSelectedDoc(row);
+    setIsDetailOpen(true);
+    setHighlightedRowId(row.id);
+    setActionType("view");
+  };
+
+  // Inside Outbox.jsx
+  const handleDeleteConfirm = async (docId) => { // Added async
+    setHighlightedRowId(docId);
+    setActionType("delete-flash");
+    
+    try {
+      // This changes the status so it disappears from "Sent" queries
+      const docRef = doc(db, "documents", docId);
+      await updateDoc(docRef, { 
+        status: "Deleted",
+        deletedAt: new Date() // Good for record keeping!
+      });
+    } catch (error) {
+      console.error("Error soft-deleting document:", error);
+    }
+
+    setTimeout(() => {
+      // Keep your existing UI logic
+      setOutboxDocs((prevDocs) => prevDocs.filter(d => d.id !== docId));
+      setIsDeleteModalOpen(false);
+      setDocToDelete(null);
+      setHighlightedRowId(null);
+      setActionType("");
+    }, 800); 
+  };
+
   const filteredRows = outboxDocs.filter((doc) => {
     const search = (searchTerm || "").toLowerCase();
     return (
@@ -130,7 +160,6 @@ const Outbox = ({ searchTerm = "" }) => {
         </Box>
       )
     },
-
     { 
       field: "categoryName", 
       headerName: "Category", 
@@ -146,21 +175,32 @@ const Outbox = ({ searchTerm = "" }) => {
               border: `1px solid ${colors.blueAccent[700]}`,
               color: colors.grey[100],
               fontWeight: "bold",
-              minWidth: "100px" // Ensures consistent length
+              width: "150px",
+              justifyContent: "center",
+              "& .MuiChip-label": {
+                display: "block",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                width: "100%",
+                textAlign: "center",
+                paddingLeft: "8px",
+                paddingRight: "8px",
+              }
             }} 
           />
         </Box>
       )
     },
-
     { 
       field: "senderDepartment", 
-      headerName: "Department", 
+      headerName: "Sender Department", 
       flex: 1.2,
       renderCell: (params) => (
         <Box display="flex" alignItems="center" height="100%">
           <Typography color={colors.greenAccent[400]}>
-            {formatDepartmentName(userDepartment)}
+            {/* Use params.row.senderDepartment, NOT userDepartment */}
+            {formatDepartmentName(params.row.senderDepartment || "General")}
           </Typography>
         </Box>
       )
@@ -173,7 +213,6 @@ const Outbox = ({ searchTerm = "" }) => {
         <Box display="flex" alignItems="center" height="100%"><Typography>{params.value || "N/A"}</Typography></Box>
       )
     },
-
     { 
       field: "submittedTo", 
       headerName: "Target Department", 
@@ -184,8 +223,7 @@ const Outbox = ({ searchTerm = "" }) => {
         </Box>
       )
     },
-
-  { 
+    { 
       field: "priority", 
       headerName: "Priority", 
       flex: 1,
@@ -198,7 +236,6 @@ const Outbox = ({ searchTerm = "" }) => {
           case "Low": chipColor = colors.greenAccent[600]; break;
           default: chipColor = colors.blueAccent[700];
         }
-
         return (
           <Chip
             label={priority}
@@ -208,7 +245,7 @@ const Outbox = ({ searchTerm = "" }) => {
               color: colors.grey[100],
               fontWeight: "bold",
               borderRadius: "4px",
-              minWidth: "80px", // Standard box length
+              minWidth: "80px",
               animation: priority === "Critical" ? "pulse 2s infinite" : "none",
               "@keyframes pulse": {
                 "0%": { opacity: 1 },
@@ -220,7 +257,6 @@ const Outbox = ({ searchTerm = "" }) => {
         );
       }
     },
-
     { 
       field: "displayDate", 
       headerName: "Date Sent", 
@@ -243,7 +279,10 @@ const Outbox = ({ searchTerm = "" }) => {
             variant="text"
             size="small"
             startIcon={<VisibilityIcon />}
-            onClick={(e) => { e.stopPropagation(); setSelectedDoc(params.row); setIsDetailOpen(true); }}
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              handleView(params.row);
+            }}
             sx={{ textTransform: "none" }}
           >View</Button>
           <Button
@@ -251,7 +290,13 @@ const Outbox = ({ searchTerm = "" }) => {
             size="small"
             color="error"
             startIcon={<DeleteIcon />}
-            onClick={(e) => { e.stopPropagation(); setDocToDelete(params.row); setIsDeleteModalOpen(true); }}
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              setDocToDelete(params.row); 
+              setHighlightedRowId(params.row.id);
+              setActionType("delete");
+              setIsDeleteModalOpen(true); 
+            }}
             sx={{ textTransform: "none" }}
           >Delete</Button>
         </Box>
@@ -265,22 +310,43 @@ const Outbox = ({ searchTerm = "" }) => {
       <Box
         className="datagrid-container"
         m="40px 0 0 0"
-        height="70vh"
+        height="75vh"
         sx={{
           "& .MuiDataGrid-columnHeaders": { backgroundColor: colors.blueAccent[700] },
           "& .MuiDataGrid-virtualScroller": { backgroundColor: colors.primary[400] },
           "& .MuiDataGrid-footerContainer": { backgroundColor: colors.blueAccent[700] },
           "& .MuiDataGrid-row:hover": { backgroundColor: `${colors.primary[400]} !important` },
+          // Ensuring our custom highlight classes in index.css work here
+          "& .delete-flash-row": {
+            backgroundColor: `${colors.redAccent[600]} !important`,
+            transition: "background-color 0.1s ease",
+          },
+          "& .view-row": {
+            backgroundColor: `${colors.greenAccent[700]} !important`,
+            transition: "background-color 0.5s ease",
+          },
+
+          // FORCE TEXT TO WHITE IN HIGHLIGHTED ROWS
+          // This ensures Typography and Box colors don't stay green/grey
+          
+          // Ensure Chips inside highlighted rows also look okay
+          "& .delete-flash-row .MuiChip-root": {
+            borderColor: "#ffffff !important",
+            color: "#ffffff !important",
+          }
         }}
       >
         <DataGrid 
           loading={loading}
           rows={filteredRows} 
           columns={columns} 
+          getRowClassName={(params) => {
+            if (params.id === highlightedRowId) return `${actionType}-row`;
+            return '';
+          }}
           onRowClick={(params, event) => {
             if (event.target.closest('button')) return; 
-            setSelectedDoc(params.row);
-            setIsDetailOpen(true); 
+            handleView(params.row);
           }}
           pageSize={10}
           rowsPerPageOptions={[10, 20]}
@@ -288,12 +354,30 @@ const Outbox = ({ searchTerm = "" }) => {
         />
       </Box>
 
-      <DocumentMDetailsModal open={isDetailOpen} onClose={() => setIsDetailOpen(false)} docData={selectedDoc} />
+      <DocumentMDetailsModal 
+        open={isDetailOpen} 
+        onClose={() => {
+          setIsDetailOpen(false);
+          setHighlightedRowId(null);
+          setActionType("");
+        }} 
+        docData={selectedDoc} 
+      />
+
+      {/* When user click delete in Outbox */}
       <DeleteConfirmModal 
         open={isDeleteModalOpen} 
-        onClose={() => { setIsDeleteModalOpen(false); setDocToDelete(null); }} 
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setDocToDelete(null);
+          setHighlightedRowId(null); 
+          setActionType("");
+        }} 
         docData={docToDelete}   
-        onConfirm={() => setIsDeleteModalOpen(false)} 
+        onConfirm={() => {
+          // This triggers the 800ms logic we wrote in step 1
+          handleDeleteConfirm(docToDelete.id);
+        }}
       />
     </Box>
   );
