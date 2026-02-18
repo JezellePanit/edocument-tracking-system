@@ -94,19 +94,32 @@ const DocumentManagement = () => {
   useEffect(() => { fetchDocs(); }, [paginationModel]);
 
   // --- HANDLER FUNCTIONS ---
-  const handleUpdateStatus = async (id, newStatus, adminRemarks) => {
+  const handleUpdateStatus = async (id, newAdminStatus, adminRemarks) => {
     try {
       const docRef = doc(db, "documents", id);
-      await updateDoc(docRef, { 
-        // We update both so the table AND the progress track correctly
-        adminStatus: newStatus, 
-        status: newStatus,
-        adminReply: adminRemarks, // The message you just added!
-        updatedAt: new Date()
-      });
       
-      setIsUpdateModalOpen(false); // Close the modal automatically
-      fetchDocs(); // Refresh the table
+      // Build the update object
+      const updateData = {
+        adminStatus: newAdminStatus, // Internal admin workflow
+        // status: "Sent", // We DON'T change this anymore so it stays in user outbox
+        updatedAt: new Date()
+      };
+
+      // Handle remarks/replies dynamically based on which modal sent them
+      if (typeof adminRemarks === 'string') {
+        updateData.adminReply = adminRemarks;
+      } else if (adminRemarks?.adminRemarks) {
+        updateData.adminReply = adminRemarks.adminRemarks;
+      } else if (adminRemarks?.adminReply) {
+        updateData.adminReply = adminRemarks.adminReply;
+      }
+
+      await updateDoc(docRef, updateData);
+      
+      setIsUpdateModalOpen(false);
+      setIsRequestModalOpen(false);
+      setIsReplyModalOpen(false);
+      fetchDocs(); 
     } catch (error) {
       console.error("Error updating status:", error);
       alert("Failed to update: " + error.message);
@@ -132,15 +145,15 @@ const DocumentManagement = () => {
   };
 
   const filteredRows = documents.filter((doc) => {
-
-    const allowedStatuses = ["Sent", "Pending", "In Review", "On Hold", "Completed", "Deferred", "Rejected"];
-    if (!allowedStatuses.includes(doc.status)) return false;
+    // Only show documents that were sent to Admin
+    if (doc.status !== "Sent") return false;
 
     const searchLower = searchEmployee.toLowerCase();
     const matchesSearch = 
       (doc.senderEmail || "").toLowerCase().includes(searchLower) || 
       (doc.title || "").toLowerCase().includes(searchLower) ||
       (doc.documentId || "").toLowerCase().includes(searchLower);
+
     const deptMap = {
       "Executive Office": "executive",
       "Records Section": "records",
@@ -156,10 +169,12 @@ const DocumentManagement = () => {
     const matchesDept = filterDept === "All" || doc.originDepartment === targetDbValue;
     const matchesPriority = filterPriority === "All" || doc.priority === filterPriority;
 
+    const currentAdminStatus = doc.adminStatus || "Pending";    
     const statusMatch = 
-      currentTab === 0 ? true :
-      currentTab === 1 ? (doc.adminStatus === "Pending" || !doc.adminStatus) :
-      currentTab === 2 ? doc.adminStatus === "Completed" : false;
+      currentTab === 0 ? true : // All
+      currentTab === 1 ? (currentAdminStatus !== "Completed" && currentAdminStatus !== "Rejected") : // Ongoing (Active)
+      currentTab === 2 ? (currentAdminStatus === "Completed") : // Completed
+      currentTab === 3 ? (currentAdminStatus === "Rejected") : false; // Rejected
 
     return matchesSearch && matchesDept && matchesPriority && statusMatch;
   });
@@ -270,37 +285,31 @@ const DocumentManagement = () => {
         </Box>
       )
     }, 
-    // {
-    //   field: "priority",
-    //   headerName: "Priority",
-    //   flex: 0.8,
-    //   renderCell: (params) => {
-    //     const priority = params.value || "Normal";
-    //     let chipColor;
-    //     switch(priority) {
-    //       case "Critical": chipColor = colors.redAccent[500]; break;
-    //       case "Urgent": chipColor = "#ef6c00"; break;
-    //       case "Low": chipColor = colors.greenAccent[600]; break;
-    //       default: chipColor = colors.blueAccent[700];
-    //     }
-    //     return (
-    //       <Box display="flex" alignItems="center" height="100%">
-    //         <Chip
-    //             label={priority}
-    //             size="small"
-    //             sx={{
-    //             backgroundColor: chipColor,
-    //             color: colors.grey[100],
-    //             fontWeight: "bold",
-    //             borderRadius: "4px",
-    //             minWidth: "80px",
-    //             animation: priority === "Critical" ? "pulse 2s infinite" : "none",
-    //             }}
-    //         />
-    //       </Box>
-    //     );
-    //   }
-    // },       
+{
+      field: "priority",
+      headerName: "Priority",
+      flex: 0.8,
+      renderCell: (params) => {
+        const priority = params.value || "Normal";
+        // Now using the subtle category-like border style
+        return (
+          <Box display="flex" alignItems="center" height="100%">
+            <Chip
+                label={priority}
+                size="small"
+                sx={{
+                  backgroundColor: colors.primary[400],
+                  color: colors.grey[100],
+                  fontWeight: "bold",
+                  borderRadius: "4px",
+                  border: `1px solid ${colors.grey[500]}`, // Subtle border
+                  minWidth: "80px",
+                }}
+            />
+          </Box>
+        );
+      }
+    },     
     { 
       field: "adminStatus", 
       headerName: "Admin Status", 
@@ -308,14 +317,16 @@ const DocumentManagement = () => {
       renderCell: (params) => {
 
         const status = params.value || "Pending";
-                let chipColor;
+        let chipColor;
+        let pulse = false;
+
         switch(status) {
           case "In Review": chipColor = colors.greenAccent[500]; break;
           case "On Hold": chipColor = colors.blueAccent[500]; break;
           case "Completed": chipColor = colors.greenAccent[600]; break;
           case "Deferred": chipColor = "#ef6c00"; break;
-          case "Rejected": chipColor = colors.redAccent[500]; break;
-          default: chipColor = colors.grey[500];
+          case "Rejected": chipColor = colors.redAccent[500]; pulse = true; break;
+          default: chipColor = colors.grey[500]; pulse = status === "Pending"; break;
         }
         
         return (
@@ -379,8 +390,9 @@ const DocumentManagement = () => {
           indicatorColor="secondary"
         >
           <Tab label="All Documents" />
-          <Tab label="Pending" />
+          <Tab label="Ongoing" />
           <Tab label="Completed" />
+          <Tab label="Rejected" />
         </Tabs>
       </Box>
 

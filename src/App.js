@@ -28,7 +28,6 @@ import FAQ from "./scenes/faq";
 import Calendar from "./scenes/calendar";
 import Department from "./scenes/department";
 import LeaveManagement from "./scenes/leavemanagement";
-import Tracker from "./scenes/tracker";
 import LeaveRequestForm from "./scenes/leaverequest";
 import DocumentManagement from "./scenes/documentmanagement";
 import Home from "./scenes/home";
@@ -76,7 +75,6 @@ function App() {
                   <Route path="/calendar" element={<Calendar searchTerm={searchTerm}/>} />
                   <Route path="/department" element={<Department searchTerm={searchTerm}/>} />
                   <Route path="/leavemanagement" element={<LeaveManagement searchTerm={searchTerm}/>} />
-                  <Route path="/tracker" element={<Tracker searchTerm={searchTerm}/>} />
                   <Route path="/leaverequest" element={<LeaveRequestForm searchTerm={searchTerm}/>} />
                   <Route path="/home" element={<Home searchTerm={searchTerm}/>} />
                   <Route path="/documentmanagement" element={<DocumentManagement searchTerm={searchTerm}/>} />
