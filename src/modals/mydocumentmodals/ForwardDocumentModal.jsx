@@ -6,7 +6,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import SendIcon from '@mui/icons-material/Send';
 import { tokens } from "../../theme";
 import { db } from "../../firebaseConfig";
-import { collection, query, where, getDocs, doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { auth } from "../../firebaseConfig";
 
 const DEPARTMENT_NAMES = {
@@ -100,43 +100,61 @@ const ForwardDocumentModal = ({ open, onClose, docData, onForwardSuccess }) => {
         return;
     }
 
-    setLoading(true);
-    try {
-      const selectedUserObj = deptUsers.find(u => u.id === targetUser || u.uid === targetUser);
-      const docRef = doc(db, "documents", docData.id);
-      const emailToSave = selectedUserObj?.email || "Unknown Email";
+  setLoading(true);
+  try {
+    // --- NEW LOGIC: FETCH SENDER'S DEPARTMENT ---
+    const userDocRef = doc(db, "users", currentUser.uid);
+    const userDocSnap = await getDoc(userDocRef);
+    
+    let senderDept = "N/A"; // Default if not found
+    let senderUsername = currentUser.displayName || "Unknown User";
+    
+    if (userDocSnap.exists()) {
+      const userData = userDocSnap.data();
+      senderDept = userData.department || "General";
+      // This checks common variations of the username field
+      senderUsername = userData.username || userData.userName || userData.fullName || currentUser.displayName || "User";
+    }
+    // --------------------------------------------
 
-      setRecipientEmail(emailToSave);
-      const timestamp = new Date();
+    const selectedUserObj = deptUsers.find(u => u.id === targetUser || u.uid === targetUser);
+    const docRef = doc(db, "documents", docData.id);
+    const emailToSave = selectedUserObj?.email || "Unknown Email";
 
-      await updateDoc(docRef, {
-        categoryName: finalCategory,
-        submittedTo: DEPARTMENT_NAMES[targetDept], 
-        recipientId: targetUser,  
+    setRecipientEmail(emailToSave);
+    const timestamp = new Date();
+
+    await updateDoc(docRef, {
+      categoryName: finalCategory,
+      submittedTo: DEPARTMENT_NAMES[targetDept], 
+      recipientId: targetUser,  
+      recipientName: emailToSave,
+      senderId: currentUser.uid, 
+      senderEmail: currentUser.email,
+      username: senderUsername,
+      senderDepartment: senderDept, // This now has a value!
+      status: "Sent",
+      lastForwardedAt: timestamp,
+      remarks: remarks,
+      forwardingHistory: arrayUnion({
         recipientName: emailToSave,
-        senderId: currentUser.uid, 
-        senderEmail: currentUser.email,
-        status: "Sent", // THIS FIELD TRANSFERS IT TO THE OUTBOX
+        submittedTo: DEPARTMENT_NAMES[targetDept],
         lastForwardedAt: timestamp,
         remarks: remarks,
-        forwardingHistory: arrayUnion({
-          recipientName: emailToSave,
-          submittedTo: DEPARTMENT_NAMES[targetDept],
-          lastForwardedAt: timestamp,
-          remarks: remarks,
-          senderEmail: currentUser.email
-        })
-      });
+        senderEmail: currentUser.email,
+        senderUsername: senderUsername,
+        senderDepartment: senderDept // Also good to keep in history
+      })
+    });
 
-      setIsSuccess(true); 
-      // Removed alert, let the Success View handle it
-    } catch (error) {
-       console.error("Forwarding Error:", error);
-       alert("Error: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setIsSuccess(true); 
+  } catch (error) {
+     console.error("Forwarding Error:", error);
+     alert("Error: " + error.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (!docData) return null;
 

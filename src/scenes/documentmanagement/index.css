@@ -1,0 +1,36 @@
+/* DocumentManagement.css */
+
+/* Green highlight for Viewing */
+.view-row {
+    background-color: #388e3c !important; /* Material Green 700 */
+    color: white !important;
+    transition: background-color 0.4s ease;
+}
+
+/* Red highlight for Deletion (before it disappears) */
+.delete-flash-row, 
+.delete-row {
+    background-color: #d32f2f !important; /* Material Red 700 */
+    color: white !important;
+    transition: background-color 0.3s ease;
+}
+
+/* Ensure text and icons inside highlighted rows turn white */
+.view-row .MuiTypography-root,
+.view-row .MuiSvgIcon-root,
+.delete-row .MuiTypography-root,
+.delete-row .MuiSvgIcon-root {
+    color: white !important;
+}
+
+/* Smooth transition for all rows */
+.MuiDataGrid-row {
+    transition: background-color 0.3s ease;
+}
+
+/* Priority Critical Pulse Animation */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
