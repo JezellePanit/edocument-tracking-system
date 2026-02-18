@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Box, Button, useTheme, Chip } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import { useNavigate } from "react-router-dom";
 import { db, auth } from "../../firebaseConfig";
 import Header from "../../components/Header";
 import { tokens } from "../../theme";
@@ -32,37 +33,40 @@ const MyDocument = ({ searchTerm = "" }) => {
   const [docToDelete, setDocToDelete] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  const [highlightedRowId, setHighlightedRowId] = useState(null);
+  const [actionType, setActionType] = useState(""); // "view", "edit", "add", "delete"
+
+  const navigate = useNavigate();
   const [sendingDocId, setSendingDocId] = useState(null);
 
   // Get the current logged-in user
   const currentUser = auth.currentUser;  
+  
+useEffect(() => {
+  if (!currentUser) return;
 
-  useEffect(() => {
-    if (!currentUser) return;
-
-    // --- ROLE BASED FILTERING LOGIC ---
-    // We want to see documents where:
-    // 1. The user is the Creator (uploaderId
+  // 1. Simplified Query (More reliable for real-time)
   const q = query(
     collection(db, "documents"),
     where("ownerId", "==", currentUser.uid)
-  );    
-  
+  );
+
   const unsubscribe = onSnapshot(q, (snapshot) => {
     const docs = snapshot.docs
       .map(doc => {
         const docData = doc.data();
-        let formattedDate = "N/A";
-        if (docData.createdAt?.toDate) {
-          formattedDate = docData.createdAt.toDate().toLocaleString();
-        }
+        let formattedDate = docData.createdAt?.toDate 
+          ? docData.createdAt.toDate().toLocaleString() 
+          : "N/A";
         return {
           id: doc.id,
           ...docData,
           displayDate: formattedDate 
         };
       })
-      // FIX: Filter the "Sent" documents HERE in memory
+      // 2. THIS IS THE KEY: 
+      // This ensures that as soon as a doc status changes to "Sent", 
+      // it is filtered out of the 'documents' state instantly.
       .filter(doc => doc.status !== "Sent"); 
 
     setDocuments(docs);
@@ -73,20 +77,65 @@ const MyDocument = ({ searchTerm = "" }) => {
   return () => unsubscribe(); 
 }, [currentUser]);
 
+  // Create a dummy function so your Modals don't crash when calling onRefresh
+  const noOp = () => {};
+
   // Handle Forwarding success to trigger UI updates in parent
   const handleForwardClose = (wasSent) => {
     if (wasSent === true) {
-      // The green highlight triggers because sendingDocId is set
+      // Trigger the green highlight effect
       setTimeout(() => {
+        // Remove the document from the local list immediately
         setDocuments((prevDocs) => prevDocs.filter((doc) => doc.id !== sendingDocId));
         setSendingDocId(null);
         setIsForwardModalOpen(false);
-      }, 800); // Delay so user sees the green highlight before it vanishes
+        
+        // REDIRECT to Outbox after the visual effect
+        // navigate("/outbox"); 
+      }, 800); 
     } else {
       setSendingDocId(null);
       setIsForwardModalOpen(false);
     }
   };
+
+  // Handle Add Success (in the DocumentModal call)
+  const handleAddSuccess = (newDocId) => {
+    setIsModalOpen(false);
+    setHighlightedRowId(newDocId);
+    setActionType("add");
+    setTimeout(() => { setHighlightedRowId(null); setActionType(""); }, 2000);
+  };
+
+  // Handle View
+  const handleView = (row) => {
+    setSelectedDoc(row);
+    setIsDetailOpen(true);
+    setHighlightedRowId(row.id);
+    setActionType("view");
+  };
+
+  // Handle Edit Success
+  const handleEditSuccess = (docId) => {
+    setIsEditModalOpen(false);
+    setHighlightedRowId(docId);
+    setActionType("edit");
+    setTimeout(() => { setHighlightedRowId(null); setActionType(""); }, 2000);
+  };
+
+  // Handle Delete (Highlighting red before it vanishes)
+  const handleDeleteConfirm = (docId) => {
+    setHighlightedRowId(docId);
+    setActionType("delete-flash");
+    
+    setTimeout(() => {
+      setDocuments((prevDocs) => prevDocs.filter(d => d.id !== docId));
+      setIsDeleteModalOpen(false);
+      setDocToDelete(null);
+      setHighlightedRowId(null);
+      setActionType("");
+    }, 800); // Wait for the red flash before removing
+  };  
 
 
   // Handle Edit action
@@ -96,30 +145,30 @@ const MyDocument = ({ searchTerm = "" }) => {
   };
 
   // Fetch documents from Firestore   
-  const fetchDocuments = useCallback(async () => {
-    if (!currentUser) return;
-    try {
-      const q = query(
-        collection(db, "documents"),
-        or(
-          where("ownerId", "==", currentUser.uid),
-        )
-      );
-      const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map((doc) => {
-        const docData = doc.data();
-        let formattedDate = docData.createdAt?.toDate ? docData.createdAt.toDate().toLocaleString() : "N/A";
-        return { id: doc.id, ...docData, displayDate: formattedDate };
-      });
-      setDocuments(data);
-    } catch (error) {
-      console.error("Error fetching documents: ", error);
-    }
-  }, [currentUser]); // Function only changes if currentUser changes
+  // const fetchDocuments = useCallback(async () => {
+  //   if (!currentUser) return;
+  //   try {
+  //     const q = query(
+  //       collection(db, "documents"),
+  //       or(
+  //         where("ownerId", "==", currentUser.uid),
+  //       )
+  //     );
+  //     const querySnapshot = await getDocs(q);
+  //     const data = querySnapshot.docs.map((doc) => {
+  //       const docData = doc.data();
+  //       let formattedDate = docData.createdAt?.toDate ? docData.createdAt.toDate().toLocaleString() : "N/A";
+  //       return { id: doc.id, ...docData, displayDate: formattedDate };
+  //     });
+  //     setDocuments(data);
+  //   } catch (error) {
+  //     console.error("Error fetching documents: ", error);
+  //   }
+  // }, [currentUser]);
 
-  useEffect(() => {
-      fetchDocuments();
-    }, [fetchDocuments]);
+  // useEffect(() => {
+  //     fetchDocuments();
+  //   }, [fetchDocuments]);
 
   // Filter based on the search bar
   const filteredRows = documents.filter((doc) => {
@@ -195,6 +244,7 @@ const MyDocument = ({ searchTerm = "" }) => {
             size="small"
             startIcon={<VisibilityIcon />}
             onClick={() => {
+              handleView(params.row)
               setSelectedDoc(params.row);
               setIsDetailOpen(true);
             }}
@@ -221,6 +271,8 @@ const MyDocument = ({ searchTerm = "" }) => {
                 startIcon={<DeleteIcon />}
                 onClick={() => {
                   setDocToDelete(params.row);
+                  setHighlightedRowId(params.row.id); // Highlight row immediately
+                  setActionType("delete");            // Set type to delete (red)
                   setIsDeleteModalOpen(true);
                 }}
               >
@@ -270,6 +322,7 @@ const MyDocument = ({ searchTerm = "" }) => {
 
     setSelectedDoc(params.row);
     setIsDetailOpen(true); 
+    handleView(params.row);
   };
 
 return (
@@ -336,26 +389,34 @@ return (
           rows={filteredRows} 
           columns={columns} 
           components={{ Toolbar: GridToolbar }}
-          getRowClassName={(params) => params.id === sendingDocId ? 'sending-row' : ''}
-          // FIX: Added the handler here to use the variable and enable row clicking
-          onRowClick={handleRowClick} 
-        />
+            getRowClassName={(params) => {
+              if (params.id === sendingDocId) return 'sending-row';
+              if (params.id === highlightedRowId) return `${actionType}-row`;
+              return '';
+            }}
+            onRowClick={handleRowClick} 
+          />
       </Box>
 
       {/* MODALS */}          
       {/* When user click a row/view in the table */}
       <DocumentMDetailsModal 
         open={isDetailOpen} 
-        onClose={() => setIsDetailOpen(false)} 
+        onClose={() => {
+          setIsDetailOpen(false);      // Close the modal
+          setHighlightedRowId(null);   // Remove the row highlight immediately
+          setActionType("");           // Clear the action type
+        }} 
         docData={selectedDoc} 
-        onRefresh={fetchDocuments}
+        onRefresh={noOp}
       />
+
       {/* When user click forward */}      
       <ForwardDocumentModal 
         open={isForwardModalOpen} 
         onClose={handleForwardClose} // FIX: Changed from anonymous function to handleForwardClose
         docData={selectedDoc} 
-        onForwardSuccess={fetchDocuments} 
+        onForwardSuccess={noOp}
       />
 
       {/* When user click edit */}
@@ -363,7 +424,12 @@ return (
         open={isEditModalOpen} 
         onClose={() => setIsEditModalOpen(false)} 
         docData={selectedDoc} 
-        onEditSuccess={fetchDocuments}
+        onEditSuccess={(newId) => {
+          handleEditSuccess(newId);
+          // This closes the modal in the parent state immediately
+          setIsEditModalOpen(false); // Close the modal
+          console.log("Document updated successfully!");         
+        }}
       />
 
       {/* When user click delete */}
@@ -372,18 +438,34 @@ return (
         onClose={() => {
           setIsDeleteModalOpen(false);
           setDocToDelete(null);
+          setHighlightedRowId(null); // Clear highlight if they cancel
+          setActionType("");
         }} 
         docData={docToDelete}   
-        onConfirm={fetchDocuments} 
+        onConfirm={() => {
+          handleDeleteConfirm(docToDelete.id);
+          // 1. Close the modal immediately
+          // setIsDeleteModalOpen(false);
+          // setDocToDelete(null);
+          
+          // 2. OPTIONAL: Manually filter the local state for an "instant" vanish
+          // This makes the row disappear BEFORE the server even responds.
+          // setDocuments((prevDocs) => prevDocs.filter(d => d.id !== docToDelete.id));
+          
+          console.log("Document removed from UI");
+        }}
       />
 
       {/* When user click add new document */}
       <DocumentModal 
         open={isModalOpen} 
         onClose={handleCloseModal} 
-        onDocumentAdded={fetchDocuments}
-        editData={editDoc} 
-      />
+        onDocumentAdded={(newId) => {
+            handleAddSuccess(newId)
+            console.log("New document detected!");
+          }}
+          editData={editDoc} 
+        />
     </Box>
   );
 };

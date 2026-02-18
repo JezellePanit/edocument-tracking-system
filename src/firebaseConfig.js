@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore"; // For your tracking system
+import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage"; // 1. Add this import
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -12,5 +13,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app); // Export database
-export const auth = getAuth(app);      // Export auth
+
+export const db = getFirestore(app);
+export const auth = getAuth(app);
+export const storage = getStorage(app); // 2. Add this export

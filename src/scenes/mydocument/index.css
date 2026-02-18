@@ -69,3 +69,45 @@
   color: #0a2a66;
   font-weight: 500;
 }
+
+/* Forwarding/Sent - Green */
+.sending-row {
+  background-color: #2e7d32 !important; /* Material Green 800 */
+  transition: background-color 0.5s ease;
+}
+
+/* Viewing - Blue */
+.view-row {
+  background-color: #2e7d32 !important; /* Material Blue 800 */
+  transition: background-color 0.5s ease;
+}
+
+/* Adding - Teal/Cyan */
+.add-row {
+  background-color: #2e7d32 !important; /* Material Cyan 800 */
+  animation: pulse-add 1s infinite;
+}
+
+/* Editing - Amber/Yellow */
+.edit-row {
+  background-color: rgba(41, 182, 246, 0.2) !important;
+  transition: background-color 0.3s ease;
+}
+
+/* Deleting - Red */
+.delete-row {
+    background-color: rgba(255, 0, 0, 0.2) !important; /* Soft transparent red */
+    transition: background-color 0.3s ease;
+}
+
+/* The state when the delete is CONFIRMED (the flash) */
+.delete-flash-row {
+    background-color: #f44336 !important; /* Solid bright red */
+    transition: background-color 0.1s ease;
+}
+
+@keyframes pulse-add {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}

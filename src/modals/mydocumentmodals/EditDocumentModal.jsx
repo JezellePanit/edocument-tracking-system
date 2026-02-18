@@ -9,7 +9,7 @@ import AttachFileIcon from "@mui/icons-material/AttachFile";
 
 import { supabase } from "../../supabaseClient"; 
 import { db } from "../../firebaseConfig"; 
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { tokens } from "../../theme";
 
 const EditDocumentModal = ({ open, onClose, docData, onEditSuccess }) => {
@@ -113,11 +113,13 @@ const EditDocumentModal = ({ open, onClose, docData, onEditSuccess }) => {
         ...formData, // Now only contains title, description, and priority
         files: finalFileUrls,
         docType: uniqueExtensions,
-        lastEditedAt: new Date()
+        lastEditedAt: serverTimestamp()
       });
 
-      onEditSuccess();
+      // PASS THE ID BACK HERE for the orange pulse effect
+      if (onEditSuccess) onEditSuccess(docData.id);
       onClose();
+
     } catch (error) {
       console.error("Update failed:", error);
       alert("Error updating document: " + error.message);

@@ -133,7 +133,7 @@ const ViewOutboxModal = ({ open, onClose, docData }) => {
                     <Box key={index} sx={{ mb: index !== history.length - 1 ? 2 : 0 }}>
                       <Divider sx={{ opacity: 0.3, mb: 1.5 }} />
                       <Box display="grid" gridTemplateColumns="1fr 1fr" gap="15px">
-                        <DetailItem label="Forwarded To" value={record.recipientName} colors={colors} />
+                        <DetailItem label="Sent To" value={record.recipientName} colors={colors} />
                         <DetailItem label="Department" value={record.submittedTo} colors={colors} />
                       </Box>
 
