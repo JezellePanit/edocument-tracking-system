@@ -17,13 +17,12 @@ import Sidebar from "./scenes/global/Sidebar";
 import Dashboard from "./scenes/dashboard";
 // COMMENTED OUT OR REMOVE IF FILE IS GONE:
 // import AddDocument from "./scenes/document/AddDocument"; 
-import Team from "./scenes/team";
+import Posting from "./scenes/posting";
 import MyDocument from "./scenes/mydocument";
 import Contacts from "./scenes/contacts";
 import Inbox from "./scenes/inbox";
 import Outbox from "./scenes/outbox";
 import Employee from "./scenes/employee";
-import Line from "./scenes/line";
 import FAQ from "./scenes/faq";
 import Calendar from "./scenes/calendar";
 import Department from "./scenes/department";
@@ -65,13 +64,12 @@ function App() {
                 <Topbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
                 <Routes>
                   <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/team" element={<Team searchTerm={searchTerm}/>} />
+                  <Route path="/posting" element={<Posting searchTerm={searchTerm}/>} />
                   <Route path="/contacts" element={<Contacts searchTerm={searchTerm}/>} />
                   <Route path="/mydocument" element={<MyDocument searchTerm={searchTerm}/>} />
                   <Route path="/inbox" element={<Inbox searchTerm={searchTerm}/>} />
                   <Route path="/outbox" element={<Outbox searchTerm={searchTerm}/>} />
                   <Route path="/employee" element={<Employee searchTerm={searchTerm}/>} />
-                  <Route path="/line" element={<Line searchTerm={searchTerm}/>} />
                   <Route path="/faq" element={<FAQ searchTerm={searchTerm}/>} />
                   <Route path="/calendar" element={<Calendar searchTerm={searchTerm}/>} />
                   <Route path="/department" element={<Department searchTerm={searchTerm}/>} />

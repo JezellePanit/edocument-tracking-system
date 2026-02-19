@@ -112,6 +112,7 @@ const TheSidebar = () => {
     else if (path === "/tracker") setSelected("Document Tracker");
     else if (path === "/leaverequest") setSelected("Leave Application");
     else if (path === "/home") setSelected("Home");
+    else if (path === "/posting") setSelected("Posting ");
 
     return () => unsubscribe();
   }, [location.pathname]);
@@ -230,7 +231,7 @@ const TheSidebar = () => {
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
                   {isCollapsed ? "Comms" : "Communications"}
                 </Typography>
-                <Item title="Communication Hub" to="/team" icon={<CampaignOutlinedIcon/>} selected={selected} setSelected={setSelected} />
+                <Item title="Communication Hub" to="/posting" icon={<CampaignOutlinedIcon/>} selected={selected} setSelected={setSelected} />
 
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
                   {isCollapsed ? "Mgmt" : "Managment"}
