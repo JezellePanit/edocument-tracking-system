@@ -42,7 +42,7 @@
   color: white !important;
 }
 
-/* DataGrid Styling */
+/* DataGrid General Styling */
 .datagrid-wrapper {
   height: 70vh;
 }
@@ -70,40 +70,55 @@
   font-weight: 500;
 }
 
-/* Forwarding/Sent - Green */
-.sending-row {
-  background-color: #2e7d32 !important; /* Material Green 800 */
-  transition: background-color 0.5s ease;
-}
+/* --- ROW HIGHLIGHTING LOGIC --- */
 
-/* Viewing - Blue */
-.view-row {
-  background-color: #2e7d32 !important; /* Material Blue 800 */
-  transition: background-color 0.5s ease;
-}
-
-/* Adding - Teal/Cyan */
-.add-row {
-  background-color: #2e7d32 !important; /* Material Cyan 800 */
-  animation: pulse-add 1s infinite;
-}
-
-/* Editing - Amber/Yellow */
-.edit-row {
-  background-color: rgba(41, 182, 246, 0.2) !important;
+/* 1. Viewing - Greyish with Black Font */
+.MuiDataGrid-row.view-row, 
+.MuiDataGrid-row.view-row.Mui-selected, 
+.MuiDataGrid-row.view-row:hover {
+  background-color: #e0e0e0 !important; /* Light Grey */
+  color: #000000 !important;            /* Black Font */
   transition: background-color 0.3s ease;
 }
 
-/* Deleting - Red */
-.delete-row {
-    background-color: rgba(255, 0, 0, 0.2) !important; /* Soft transparent red */
-    transition: background-color 0.3s ease;
+/* 2. Editing - Muted Slate/Dark Grey with Black Font */
+.MuiDataGrid-row.edit-row, 
+.MuiDataGrid-row.edit-row.Mui-selected, 
+.MuiDataGrid-row.edit-row:hover {
+  background-color: #cfd8dc !important; /* Muted Slate Grey */
+  color: #000000 !important;            /* Black Font */
+  transition: background-color 0.3s ease;
 }
 
-/* The state when the delete is CONFIRMED (the flash) */
-.delete-flash-row {
-    background-color: #f44336 !important; /* Solid bright red */
-    transition: background-color 0.1s ease;
+/* 3. Text Override for Box/Cell contents in Highlighted Rows */
+.view-row .MuiDataGrid-cell,
+.edit-row .MuiDataGrid-cell,
+.view-row .MuiBox-root,
+.edit-row .MuiBox-root {
+  color: #000000 !important; /* Ensures "Document ID" and other text turns black */
+}
+
+/* 4. Forwarding/Sent - Green */
+.MuiDataGrid-row.sending-row {
+  background-color: #2e7d32 !important; 
+  color: white !important;
+  transition: background-color 0.5s ease;
+}
+
+/* 5. Deleting - Red Flash */
+.MuiDataGrid-row.delete-row {
+    background-color: rgba(255, 0, 0, 0.2) !important;
+}
+
+.MuiDataGrid-row.delete-flash-row {
+    background-color: #f44336 !important;
+    color: white !important;
+}
+
+/* 6. Adding - Pulse Animation */
+.MuiDataGrid-row.add-row {
+  background-color: #2e7d32 !important;
+  animation: pulse-add 1s infinite;
 }
 
 @keyframes pulse-add {

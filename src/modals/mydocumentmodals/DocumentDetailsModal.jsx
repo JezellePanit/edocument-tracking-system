@@ -9,30 +9,13 @@ const DocumentDetailModal = ({ open, onClose, docData }) => {
 
   if (!docData) return null;
 
-  // --- DATE FORMATTING LOGIC (Matched to DocumentManagement.jsx) ---
-  const dateValue = docData.lastForwardedAt || docData.createdAt;
-  let formattedDate = "N/A";
-
-  if (dateValue) {
-    // If it's a Firestore Timestamp, use toDate(), otherwise create a new Date object
-    const date = dateValue.toDate ? dateValue.toDate() : new Date(dateValue);
-    formattedDate = date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true
-    });
-  }
-
+  // Helper function to get individual colors
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "Critical": return colors.redAccent[600];
-      case "Urgent": return "#ef6c00"; 
+      case "Urgent": return "#ef6c00"; // Deep Orange
       case "Low": return colors.greenAccent[600];
-      default: return colors.blueAccent[700]; 
+      default: return colors.blueAccent[700]; // Normal
     }
   };
   
@@ -88,18 +71,10 @@ const DocumentDetailModal = ({ open, onClose, docData }) => {
             </Box>
           </Box>
 
-          {/* SECOND ROW: Username and Date (Updated to fetch successfully) */}
-          <Box display="grid" gridTemplateColumns="1fr 1fr" gap="20px">
-            {/* Fetches the 'username' field from your reset request */}
-            <DetailItem label="Requested By" value={docData.senderEmail} colors={colors} />
-            
-            {/* Fetches the 'displayDate' we set in LoginSignup.jsx */}
-            <DetailItem label="Date Requested" value={formattedDate} colors={colors} />
-          </Box>
-
+          {/* SECOND ROW: Only Date Uploaded (Category Removed) */}
           <Box display="grid" gridTemplateColumns="1fr 1fr" gap="20px">
             <DetailItem label="Document ID" value={docData.documentId} colors={colors} />
-            <DetailItem label="Department" value={docData.department} colors={colors} />
+            <DetailItem label="Date Uploaded" value={docData.displayDate} colors={colors} />
           </Box>
 
           <DetailItem label="Description" value={docData.description} colors={colors} />
@@ -158,7 +133,7 @@ const DetailItem = ({ label, value, colors }) => (
       {label}
     </Typography>
     <Typography variant="h5" color={colors.grey[100]} sx={{ mt: "2px", wordBreak: "break-word", lineHeight: 1.4 }}>
-      {value || "Not available"}
+      {value || "None"}
     </Typography>
   </Box>
 );

@@ -7,7 +7,6 @@ import CloseIcon from "@mui/icons-material/Close";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditNoteIcon from '@mui/icons-material/EditNote'; 
-import ReplyIcon from '@mui/icons-material/Reply';
 import SyncAltIcon from '@mui/icons-material/SyncAlt';
 import { tokens } from "../../theme";
 
@@ -52,7 +51,7 @@ const ActionsModal = ({
           {/* 2. UPDATE STATUS */}
           <ListItem button onClick={onUpdateStatus} sx={actionStyle(colors.greenAccent[700])}>
             <ListItemIcon><SyncAltIcon sx={{ color: colors.greenAccent[300] }} /></ListItemIcon>
-            <ListItemText primary="Update Status" secondary={`Current: ${docData.adminStatus || 'Pending'}`} />
+            <ListItemText primary="Update Status and Reply" secondary={`Current: ${docData.adminStatus || 'Pending'}`} />
           </ListItem>
 
           {/* 3. REQUEST REVISION */}
@@ -62,10 +61,10 @@ const ActionsModal = ({
           </ListItem>
 
           {/* 4. REPLY */}
-          <ListItem button onClick={onReply} sx={actionStyle(colors.blueAccent[800])}>
+          {/* <ListItem button onClick={onReply} sx={actionStyle(colors.blueAccent[800])}>
             <ListItemIcon><ReplyIcon sx={{ color: colors.blueAccent[400] }} /></ListItemIcon>
             <ListItemText primary="Reply / Message" secondary="Send message to user" />
-          </ListItem>
+          </ListItem> */}
 
           <Divider sx={{ my: 1 }} />
 

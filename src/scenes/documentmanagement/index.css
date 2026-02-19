@@ -28,6 +28,33 @@
     transition: background-color 0.3s ease;
 }
 
+.MuiDataGrid-row {
+    min-height: 52px !important; /* Standard comfortable height */
+}
+
+/* Ensure the virtual scroller fills the background if rows are few */
+.MuiDataGrid-virtualScroller {
+    flex-grow: 1 !important;
+}
+
+/* Ensure the DataGrid occupies 100% of its parent height */
+.MuiDataGrid-root {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* This allows the middle section to expand to the bottom */
+.MuiDataGrid-main {
+  flex-grow: 1 !important;
+}
+
+/* Keep rows at a standard height to make the math easier for the AI */
+.MuiDataGrid-row {
+  max-height: 52px !important;
+  min-height: 52px !important;
+}
+
 /* Priority Critical Pulse Animation */
 @keyframes pulse {
     0% { opacity: 1; }

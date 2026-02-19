@@ -19,7 +19,6 @@ import Header from "../../components/Header";
 import DocumentUpdateModal from "../../modals/documentmanagementmodals/DocumentUpdateModal";
 import DocumentRequestModal from "../../modals/documentmanagementmodals/DocumentRequestModal";
 import DocumentMDetailsModal from "../../modals/documentmanagementmodals/DocumentDetailsModal";
-import DocumentReplyModal from "../../modals/documentmanagementmodals/DocumentReplyModal";
 import ActionsModal from "../../modals/documentmanagementmodals/ActionsModal";
 import "./index.css"; 
 
@@ -28,7 +27,7 @@ const DocumentManagement = () => {
   const colors = tokens(theme.palette.mode);
 
   // Pagination & Data States
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 100 });
   const [lastVisible, setLastVisible] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
   const [documents, setDocuments] = useState([]);
@@ -75,13 +74,9 @@ const DocumentManagement = () => {
         let q = query(
           collection(db, "documents"),
           orderBy("createdAt", "desc"),
-          limit(paginationModel.pageSize)
         );
-        if (paginationModel.page > 0 && lastVisible) {
-          q = query(q, startAfter(lastVisible));
-        }
+
         const querySnapshot = await getDocs(q);
-        setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
         const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setDocuments(docs);
     } catch (error) {
@@ -91,7 +86,7 @@ const DocumentManagement = () => {
     }
   };
 
-  useEffect(() => { fetchDocs(); }, [paginationModel]);
+  useEffect(() => { fetchDocs(); }, []);
 
   // --- HANDLER FUNCTIONS ---
   const handleUpdateStatus = async (id, newAdminStatus, adminRemarks) => {
@@ -285,7 +280,7 @@ const DocumentManagement = () => {
         </Box>
       )
     }, 
-{
+    {
       field: "priority",
       headerName: "Priority",
       flex: 0.8,
@@ -379,7 +374,7 @@ const DocumentManagement = () => {
   ];
 
   return (
-    <Box m="20px">
+    <Box m="20px" >
       <Header title="ADMIN DOCUMENT MGMT" subtitle="Manage incoming documents and requests" />
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: "20px" }}>
@@ -402,7 +397,7 @@ const DocumentManagement = () => {
           label="Search Employee, ID, or Title"
           variant="outlined"
           size="small"
-          sx={{ flex: 2 }}
+          sx={{ flex: 2 }} 
           value={searchEmployee}
           onChange={(e) => setSearchEmployee(e.target.value)}
         />
@@ -428,37 +423,42 @@ const DocumentManagement = () => {
       </Box>
 
       <Box
-        height="65vh"
+        height="61vh"
         sx={{
-          "& .MuiDataGrid-root": { border: "none" },
+          flexGrow: 1, // This tells the box to take up ALL remaining vertical space
+          width: "100%",
+          mb: "20px", // Margin at the very bottom
+          "& .MuiDataGrid-root": { border: "none", display: "flex", flexDirection: "column",},
+          "& .MuiDataGrid-main": { flex: "1 1 auto", display: "flex", flexDirection: "column",},
           "& .MuiDataGrid-columnHeaders": { backgroundColor: colors.blueAccent[700], borderBottom: "none" },
-          "& .MuiDataGrid-virtualScroller": { backgroundColor: colors.primary[400] },
+          "& .MuiDataGrid-virtualScroller": { backgroundColor: colors.primary[400], flex: "1 1 auto", },
           "& .MuiDataGrid-footerContainer": { borderTop: "none", backgroundColor: colors.blueAccent[700] },
           "& .MuiDataGrid-row:hover": { backgroundColor: `${colors.primary[400]} !important` },
+          "& .MuiDataGrid-footerContainer": { borderTop: "none", backgroundColor: colors.blueAccent[700],},
           // Highlight styles
           "& .delete-flash-row, & .delete-row": { backgroundColor: `${colors.redAccent[600]} !important`, transition: "background-color 0.1s ease" },
           "& .view-row": { backgroundColor: `${colors.greenAccent[700]} !important`, transition: "background-color 0.5s ease" },
         }}
       >
-        <DataGrid
-          rows={filteredRows}
-          columns={columns}
-          rowCount={totalCount}
-          loading={loading}
-          pageSizeOptions={[10, 25, 50]}
-          paginationModel={paginationModel}
-          paginationMode="server"
-          onPaginationModelChange={setPaginationModel}
-          getRowClassName={(params) => {
-            if (params.id === highlightedRowId) return `${actionType}-row`;
-            return '';
-          }}
-          onRowClick={(params, event) => {
-            if (event.target.closest('button')) return; 
-            handleView(params.row);
-          }}
-          components={{ Toolbar: GridToolbar }}
-        />
+      <DataGrid
+        rows={filteredRows}
+        columns={columns}
+        loading={loading}
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
+        paginationMode="client"
+        // This is the key: if there are few rows, it won't shrink the table
+        autoHeight={false} 
+        getRowClassName={(params) => {
+          if (params.id === highlightedRowId) return `${actionType}-row`;
+          return '';
+        }}
+        onRowClick={(params, event) => {
+          if (event.target.closest('button')) return; 
+          handleView(params.row);
+        }}
+        slots={{ toolbar: GridToolbar }}
+      />
       </Box>
 
       {/* MODALS */}
@@ -493,13 +493,7 @@ const DocumentManagement = () => {
         docData={selectedDoc} 
         onSendRequest={(id, status, remark) => handleUpdateStatus(id, status, { adminRemarks: remark })} 
       />
-
-      <DocumentReplyModal 
-        open={isReplyModalOpen} 
-        onClose={() => setIsReplyModalOpen(false)} 
-        docData={selectedDoc} 
-        onSendReply={(id, status, msg) => handleUpdateStatus(id, status, { adminReply: msg })} 
-      />
+      
     </Box>
   );
 };

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Sidebar, Menu, MenuItem, ProSidebarProvider } from "react-pro-sidebar";
-import { Box, IconButton, Typography, useTheme } from "@mui/material";
+import { Box, IconButton, Typography, useTheme, Badge } from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
 import { tokens } from "../../theme";
 
 // FIREBASE IMPORTS
 import { auth, db } from "../../firebaseConfig"; 
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/firestore";
 
 // ASSETS
 import UserLight from "../../assets/user1.png"; 
@@ -33,7 +33,7 @@ import FolderOpenOutlinedIcon from '@mui/icons-material/FolderOpenOutlined';
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined'; // CORRECT
 
 
-const Item = ({ title, to, icon, selected, setSelected }) => {
+const Item = ({ title, to, icon, selected, setSelected, badgeCount }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
@@ -42,7 +42,11 @@ const Item = ({ title, to, icon, selected, setSelected }) => {
       active={selected === title}
       style={{ color: colors.grey[100] }}
       onClick={() => setSelected(title)}
-      icon={icon}
+      icon={
+        <Badge badgeContent={badgeCount} color="error" sx={{ "& .MuiBadge-badge": { fontSize: '10px', height: '16px', minWidth: '16px' }}}>
+          {icon}
+        </Badge>
+      }
       component={<Link to={to} />}
     >
       <Typography>{title}</Typography>
@@ -57,6 +61,35 @@ const TheSidebar = () => {
   const [selected, setSelected] = useState("Dashboard");
   const [userRole, setUserRole] = useState(""); 
   const location = useLocation();
+
+  const [unreadCount, setUnreadCount] = useState(0);
+  const currentUser = auth.currentUser; // Get current user
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const q = query(
+      collection(db, "documents"),
+      where("senderId", "==", currentUser.uid),
+      where("status", "==", "Sent")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const storedHistory = JSON.parse(localStorage.getItem(`outbox_history_${currentUser.uid}`)) || {};
+      
+      // Count how many docs have a status different from what's in LocalStorage
+      const count = snapshot.docs.filter(doc => {
+        const data = doc.data();
+        const lastSeenStatus = storedHistory[doc.id];
+        // It's "unread" if we have history for it AND the status has changed
+        return lastSeenStatus && lastSeenStatus !== (data.adminStatus || "Pending");
+      }).length;
+
+      setUnreadCount(count);
+    });
+
+    return () => unsubscribe();
+  }, [currentUser]);
 
   const [userProfile, setUserProfile] = useState({
     username: "Loading...",
@@ -260,7 +293,8 @@ const TheSidebar = () => {
                 <Item title="Leave Application" to="/leaverequest" icon={<CalendarTodayOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="My Documents" to="/mydocument" icon={<InsertDriveFileOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="Inbox" to="/inbox" icon={<MoveToInboxOutlinedIcon />} selected={selected} setSelected={setSelected} />   
-                <Item title="Outbox" to="/outbox" icon={<OutboxOutlinedIcon />} selected={selected} setSelected={setSelected} />
+                <Item title="Outbox" to="/outbox" icon={<OutboxOutlinedIcon />} selected={selected} setSelected={setSelected} badgeCount={unreadCount}/>
+
 
                 {/* c. Library */}
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>

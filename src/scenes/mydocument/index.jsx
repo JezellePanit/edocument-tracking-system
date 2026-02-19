@@ -39,6 +39,9 @@ const MyDocument = ({ searchTerm = "" }) => {
   const navigate = useNavigate();
   const [sendingDocId, setSendingDocId] = useState(null);
 
+  // Pagination & Data States
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 100 });
+   
   // Get the current logged-in user
   const currentUser = auth.currentUser;  
   
@@ -140,6 +143,8 @@ useEffect(() => {
 
   // Handle Edit action
   const handleEdit = (document) => {
+    setHighlightedRowId(document.id); // 🔥 Start the highlight
+    setActionType("edit");            // 🔥 Set the style to 'edit'
     setSelectedDoc(document);
     setIsEditModalOpen(true);
   };
@@ -348,39 +353,24 @@ return (
 
       <Box
         m="40px 0 0 0"
-        height="67vh"
+        height="69vh"
         sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cell": {
-            borderBottom: "none",
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: colors.blueAccent[700],
-            borderBottom: "none",
-          },
-          "& .MuiDataGrid-virtualScroller": {
-            backgroundColor: colors.primary[400],
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: "none",
-            backgroundColor: colors.blueAccent[700],
-          },
-          "& .MuiTablePagination-root": {
-            color: colors.grey[100],
-          },
-          "& .MuiCheckbox-root": {
-            color: `${colors.greenAccent[200]} !important`,
-          },
-          "& .MuiDataGrid-row:hover": {
-            backgroundColor: colors.primary[400],
-            cursor: "pointer",
-          },
-          "& .sending-row": {
-            backgroundColor: `${colors.greenAccent[700]} !important`,
-            transition: "background-color 0.5s ease",
-          }
+          flexGrow: 1,
+          width: "100%",
+          mb: "20px", // Margin at the very bottom
+          "& .MuiDataGrid-root": { border: "none", display: "flex", flexDirection: "column",},
+          "& .MuiDataGrid-cell": { borderBottom: "none", },
+          "& .MuiDataGrid-columnHeaders": { backgroundColor: colors.blueAccent[700], borderBottom: "none",},
+          "& .MuiDataGrid-virtualScroller": { backgroundColor: colors.primary[400], },
+          "& .MuiDataGrid-footerContainer": { borderTop: "none", backgroundColor: colors.blueAccent[700], },
+          "& .MuiTablePagination-root": { color: colors.grey[100], },
+          "& .MuiCheckbox-root": { color: `${colors.greenAccent[200]} !important`, },
+          "& .MuiDataGrid-row:hover": { backgroundColor: colors.primary[400], cursor: "pointer", },
+          "& .MuiDataGrid-row.view-row": { backgroundColor: "#e0e0e0 !important", },
+          "& .MuiDataGrid-row.edit-row": { backgroundColor: "#cfd8dc !important", },
+          // This removes the "blue" flash when clicking
+          "& .MuiDataGrid-row.Mui-selected": { backgroundColor: "transparent", },
+          "& .sending-row": { backgroundColor: `${colors.greenAccent[700]} !important`, transition: "background-color 0.5s ease", }
         }}
       >
       <DataGrid 
@@ -420,13 +410,15 @@ return (
       {/* When user click edit */}
       <EditDocumentModal 
         open={isEditModalOpen} 
-        onClose={() => setIsEditModalOpen(false)} 
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setHighlightedRowId(null); // 🔥 Reset highlight on close
+          setActionType("");
+        }} 
         docData={selectedDoc} 
         onEditSuccess={(newId) => {
           handleEditSuccess(newId);
-          // This closes the modal in the parent state immediately
-          setIsEditModalOpen(false); // Close the modal
-          console.log("Document updated successfully!");         
+          setIsEditModalOpen(false);
         }}
       />
 

@@ -28,6 +28,9 @@ const Outbox = ({ searchTerm = "" }) => {
 
   const currentUser = auth.currentUser;
 
+  // Pagination & Data States
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 100 });
+   
   // --- DEPARTMENT FORMATTING LOGIC ---
   const formatDepartmentName = (dept) => {
     if (!dept) return "N/A";
@@ -122,8 +125,13 @@ const Outbox = ({ searchTerm = "" }) => {
     setHighlightedRowId(row.id);
     setActionType("view");
     
-    // Once viewed, we can clear the change indicator for this row locally if desired
+    // 1. Update Local State
     setOutboxDocs(prev => prev.map(d => d.id === row.id ? { ...d, hasChanged: false } : d));
+
+    // 2. Update LocalStorage so it stays "read"
+    const storedHistory = JSON.parse(localStorage.getItem(`outbox_history_${currentUser.uid}`)) || {};
+    storedHistory[row.id] = row.adminStatus; // Sync current status to history
+    localStorage.setItem(`outbox_history_${currentUser.uid}`, JSON.stringify(storedHistory));
   };
 
   // Inside Outbox.jsx
@@ -165,7 +173,7 @@ const Outbox = ({ searchTerm = "" }) => {
   const columns = [
     { 
       field: "adminStatus", 
-      headerName: "Admin Status", 
+      headerName: "Status", 
       flex: 1.2,
       renderCell: (params) => {
         const status = params.value || "Pending";
@@ -186,34 +194,42 @@ const Outbox = ({ searchTerm = "" }) => {
         }
         
         return (
-          <Box display="flex" alignItems="center" height="100%" gap="8px">
-            <Chip 
-              label={status} 
-              size="small" 
-              sx={{ 
-                borderRadius: "4px", 
-                backgroundColor: chipColor, 
-                color: colors.grey[100], 
-                fontWeight: "bold",
-                width: "110px", 
-                justifyContent: "center",
-                animation: pulse ? "pulse 2s infinite" : "none",
-              }} 
-            />
-            {/* NOTIF INDICATOR: Small pulsing dot if status changed */}
+          <Box display="flex" alignItems="center" height="100%" gap="12px">
+            <Badge
+              overlap="circular"
+              variant="dot"
+              invisible={!hasChanged}
+              sx={{
+                "& .MuiBadge-badge": {
+                  backgroundColor: colors.redAccent[500],
+                  animation: "pulse-red 1.5s infinite",
+                }
+              }}
+            >
+              <Chip 
+                label={status} 
+                size="small" 
+                sx={{ 
+                  borderRadius: "4px", 
+                  backgroundColor: chipColor, 
+                  color: "#fff", 
+                  fontWeight: "bold",
+                  width: "100px",
+                }} 
+              />
+            </Badge>
             {hasChanged && (
-              <Tooltip title="Status updated since last visit!">
-                <Box 
-                   sx={{ 
-                     width: 8, 
-                     height: 8, 
-                     bgcolor: colors.redAccent[500], 
-                     borderRadius: "50%",
-                     boxShadow: `0 0 8px ${colors.redAccent[500]}`,
-                     animation: "pulse 1.5s infinite" 
-                   }} 
-                />
-              </Tooltip>
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: colors.redAccent[400], 
+                  fontWeight: "bold", 
+                  fontSize: "0.7rem",
+                  textTransform: "uppercase"
+                }}
+              >
+                Updated
+              </Typography>
             )}
           </Box>
         );
@@ -382,7 +398,7 @@ const Outbox = ({ searchTerm = "" }) => {
       <Box
         className="datagrid-container"
         m="40px 0 0 0"
-        height="75vh"
+        height="77vh"
         sx={{
           "& .MuiDataGrid-columnHeaders": { backgroundColor: colors.blueAccent[700] },
           "& .MuiDataGrid-virtualScroller": { backgroundColor: colors.primary[400] },
