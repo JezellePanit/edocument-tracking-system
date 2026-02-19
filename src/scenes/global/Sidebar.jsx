@@ -109,7 +109,6 @@ const TheSidebar = () => {
     else if (path === "/department") setSelected("Department");
     else if (path === "/line") setSelected("Line Chart");
     else if (path === "/leavemanagement") setSelected("Leave Management");
-    else if (path === "/tracker") setSelected("Document Tracker");
     else if (path === "/leaverequest") setSelected("Leave Application");
     else if (path === "/home") setSelected("Home");
     else if (path === "/posting") setSelected("Posting ");
@@ -238,7 +237,6 @@ const TheSidebar = () => {
                 </Typography>
                 <Item title="Leave Management" to="/leavemanagement" icon={<EventNoteOutlinedIcon />} selected={selected} setSelected={setSelected} />
                 <Item title="Document Management" to="/documentmanagement" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
-                <Item title="Document Tracker" to="/tracker" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
 
                 <Typography variant="h6" color={colors.grey[300]} fontWeight="bold" sx={{ m: "15px 0 5px 20px" }}>
                   {isCollapsed ? "Lib" : "Library"}

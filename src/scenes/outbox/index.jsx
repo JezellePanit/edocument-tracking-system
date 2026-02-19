@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, useTheme, Chip, Button } from "@mui/material";
+import { Box, Typography, useTheme, Chip, Button, Badge, Tooltip } from "@mui/material"; // Added Badge
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
@@ -9,6 +9,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from "@mui/icons-material/Delete";
 import DocumentMDetailsModal from "../../modals/outboxmodals/ViewOutboxModal";
 import DeleteConfirmModal from "../../modals/mydocumentmodals/DeleteConfirmModal";
+import FiberNewIcon from '@mui/icons-material/FiberNew'; // Added for the modern indicator
 
 const Outbox = ({ searchTerm = "" }) => {
   const theme = useTheme();
@@ -69,7 +70,7 @@ const Outbox = ({ searchTerm = "" }) => {
     fetchUserDept();
   }, [currentUser]);
 
-  // --- FETCH OUTBOX DOCUMENTS ---
+// --- FETCH OUTBOX DOCUMENTS + NOTIFICATION LOGIC ---
   useEffect(() => {
     if (!currentUser) return;
     const q = query(
@@ -80,13 +81,34 @@ const Outbox = ({ searchTerm = "" }) => {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        displayDate: doc.data().lastForwardedAt?.toDate 
-          ? doc.data().lastForwardedAt.toDate().toLocaleString() 
-          : "N/A",
-      }));
+      // Load previously seen statuses from LocalStorage
+      const storedHistory = JSON.parse(localStorage.getItem(`outbox_history_${currentUser.uid}`)) || {};
+      const newHistory = { ...storedHistory };
+
+      const docs = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        const docId = doc.id;
+        const currentStatus = data.adminStatus || "Pending";
+        
+        // If the status in DB is different from what we last saved, mark as changed
+        const hasChanged = storedHistory[docId] && storedHistory[docId] !== currentStatus;
+        
+        // Update our temporary object for this session
+        newHistory[docId] = currentStatus;
+
+        return {
+          id: docId,
+          ...data,
+          hasChanged: hasChanged, // Custom flag for UI
+          displayDate: data.lastForwardedAt?.toDate 
+            ? data.lastForwardedAt.toDate().toLocaleString() 
+            : "N/A",
+        };
+      });
+
+      // Save the current state so next time it's not "new"
+      localStorage.setItem(`outbox_history_${currentUser.uid}`, JSON.stringify(newHistory));
+      
       setOutboxDocs(docs);
       setLoading(false);
     });
@@ -99,6 +121,9 @@ const Outbox = ({ searchTerm = "" }) => {
     setIsDetailOpen(true);
     setHighlightedRowId(row.id);
     setActionType("view");
+    
+    // Once viewed, we can clear the change indicator for this row locally if desired
+    setOutboxDocs(prev => prev.map(d => d.id === row.id ? { ...d, hasChanged: false } : d));
   };
 
   // Inside Outbox.jsx
@@ -138,6 +163,62 @@ const Outbox = ({ searchTerm = "" }) => {
   });
 
   const columns = [
+    { 
+      field: "adminStatus", 
+      headerName: "Admin Status", 
+      flex: 1.2,
+      renderCell: (params) => {
+        const status = params.value || "Pending";
+        const hasChanged = params.row.hasChanged; // Get our custom flag
+        let chipColor;
+        let pulse = false;
+
+        switch(status) {
+          case "In Review": chipColor = colors.greenAccent[500]; break;
+          case "On Hold": chipColor = colors.blueAccent[500]; break;
+          case "Completed": chipColor = colors.greenAccent[600]; break;
+          case "Deferred": chipColor = "#ef6c00"; break;
+          case "Rejected": 
+            chipColor = colors.redAccent[500]; 
+            pulse = true; 
+            break;
+          default: chipColor = colors.grey[500]; 
+        }
+        
+        return (
+          <Box display="flex" alignItems="center" height="100%" gap="8px">
+            <Chip 
+              label={status} 
+              size="small" 
+              sx={{ 
+                borderRadius: "4px", 
+                backgroundColor: chipColor, 
+                color: colors.grey[100], 
+                fontWeight: "bold",
+                width: "110px", 
+                justifyContent: "center",
+                animation: pulse ? "pulse 2s infinite" : "none",
+              }} 
+            />
+            {/* NOTIF INDICATOR: Small pulsing dot if status changed */}
+            {hasChanged && (
+              <Tooltip title="Status updated since last visit!">
+                <Box 
+                   sx={{ 
+                     width: 8, 
+                     height: 8, 
+                     bgcolor: colors.redAccent[500], 
+                     borderRadius: "50%",
+                     boxShadow: `0 0 8px ${colors.redAccent[500]}`,
+                     animation: "pulse 1.5s infinite" 
+                   }} 
+                />
+              </Tooltip>
+            )}
+          </Box>
+        );
+      }
+    },
     { 
       field: "documentId", 
       headerName: "Document ID", 
@@ -192,19 +273,19 @@ const Outbox = ({ searchTerm = "" }) => {
         </Box>
       )
     },
-    { 
-      field: "senderDepartment", 
-      headerName: "Sender Department", 
-      flex: 1.2,
-      renderCell: (params) => (
-        <Box display="flex" alignItems="center" height="100%">
-          <Typography color={colors.greenAccent[400]}>
-            {/* Use params.row.senderDepartment, NOT userDepartment */}
-            {formatDepartmentName(params.row.senderDepartment || "General")}
-          </Typography>
-        </Box>
-      )
-    },
+    // { 
+    //   field: "senderDepartment", 
+    //   headerName: "Sender Department", 
+    //   flex: 1.2,
+    //   renderCell: (params) => (
+    //     <Box display="flex" alignItems="center" height="100%">
+    //       <Typography color={colors.greenAccent[400]}>
+    //         {/* Use params.row.senderDepartment, NOT userDepartment */}
+    //         {formatDepartmentName(params.row.senderDepartment || "General")}
+    //       </Typography>
+    //     </Box>
+    //   )
+    // },
     { 
       field: "recipientName", 
       headerName: "Recipient Email", 
@@ -213,50 +294,41 @@ const Outbox = ({ searchTerm = "" }) => {
         <Box display="flex" alignItems="center" height="100%"><Typography>{params.value || "N/A"}</Typography></Box>
       )
     },
-    { 
-      field: "submittedTo", 
-      headerName: "Target Department", 
-      flex: 1.2,
-      renderCell: (params) => (
-        <Box display="flex" alignItems="center" height="100%">
-          <Typography color={colors.greenAccent[400]}>{formatDepartmentName(params.value)}</Typography>
-        </Box>
-      )
-    },
-    { 
-      field: "priority", 
-      headerName: "Priority", 
-      flex: 1,
+    // { 
+    //   field: "submittedTo", 
+    //   headerName: "Target Department", 
+    //   flex: 1.2,
+    //   renderCell: (params) => (
+    //     <Box display="flex" alignItems="center" height="100%">
+    //       <Typography color={colors.greenAccent[400]}>{formatDepartmentName(params.value)}</Typography>
+    //     </Box>
+    //   )
+    // },
+    {
+      field: "priority",
+      headerName: "Priority",
+      flex: 0.8,
       renderCell: (params) => {
         const priority = params.value || "Normal";
-        let chipColor;
-        switch(priority) {
-          case "Critical": chipColor = colors.redAccent[500]; break;
-          case "Urgent": chipColor = "#ef6c00"; break;
-          case "Low": chipColor = colors.greenAccent[600]; break;
-          default: chipColor = colors.blueAccent[700];
-        }
+        // Now using the subtle category-like border style
         return (
-          <Chip
-            label={priority}
-            size="small"
-            sx={{
-              backgroundColor: chipColor,
-              color: colors.grey[100],
-              fontWeight: "bold",
-              borderRadius: "4px",
-              minWidth: "80px",
-              animation: priority === "Critical" ? "pulse 2s infinite" : "none",
-              "@keyframes pulse": {
-                "0%": { opacity: 1 },
-                "50%": { opacity: 0.7 },
-                "100%": { opacity: 1 },
-              }
-            }}
-          />
+          <Box display="flex" alignItems="center" height="100%">
+            <Chip
+                label={priority}
+                size="small"
+                sx={{
+                  backgroundColor: colors.primary[400],
+                  color: colors.grey[100],
+                  fontWeight: "bold",
+                  borderRadius: "4px",
+                  border: `1px solid ${colors.grey[500]}`, // Subtle border
+                  minWidth: "80px",
+                }}
+            />
+          </Box>
         );
       }
-    },
+    },  
     { 
       field: "displayDate", 
       headerName: "Date Sent", 
@@ -342,6 +414,8 @@ const Outbox = ({ searchTerm = "" }) => {
           columns={columns} 
           getRowClassName={(params) => {
             if (params.id === highlightedRowId) return `${actionType}-row`;
+            // Add a special class if it has changed to maybe highlight the whole row
+            if (params.row.hasChanged) return 'status-changed-row';
             return '';
           }}
           onRowClick={(params, event) => {
