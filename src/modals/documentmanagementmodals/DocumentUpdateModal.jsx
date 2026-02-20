@@ -3,6 +3,7 @@ import {
   Box, Typography, Modal, IconButton, Divider, Button, TextField, useTheme 
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import SyncAltIcon from '@mui/icons-material/SyncAlt';
 import { tokens } from "../../theme";
 
 const DocumentUpdateModal = ({ open, onClose, docData, onUpdate }) => {
@@ -53,9 +54,12 @@ const DocumentUpdateModal = ({ open, onClose, docData, onUpdate }) => {
       >
         {/* Header */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Box display="flex" alignItems="center" gap="10px">
+          <SyncAltIcon sx={{ color: colors.greenAccent[300], fontSize: "28px" }} />
           <Typography variant="h4" color={colors.grey[100]} fontWeight="bold">
             Update Status & Notify
           </Typography>
+          </Box>
           <IconButton onClick={onClose}>
             <CloseIcon sx={{ color: colors.grey[100] }} />
           </IconButton>

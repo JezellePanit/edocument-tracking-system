@@ -44,7 +44,7 @@ const ActionsModal = ({
         <List>
           {/* 1. VIEW DETAILS */}
           <ListItem disablePadding sx={{ mb: 1 }}>
-            <ListItemButton onClick={onView} sx={actionStyle(colors.primary[800])}>
+            <ListItemButton onClick={onView} sx={actionStyle(colors.primary[900])}>
               <ListItemIcon><VisibilityIcon sx={{ color: colors.blueAccent[100] }} /></ListItemIcon>
               <ListItemText primary="View Details" secondary="See full document info" />
             </ListItemButton>

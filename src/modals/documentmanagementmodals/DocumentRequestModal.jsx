@@ -62,7 +62,8 @@ const DocumentRequestModal = ({ open, onClose, docData, onRequest }) => {
             <DetailItem label="Document ID" value={docData.documentId} colors={colors} />
             <DetailItem label="Document Title" value={docData.title} colors={colors} />
           </Box>
-
+          
+          {/* Instruction Alert Box */}
           <Box sx={{ p: 2, bgcolor: "rgba(239, 108, 0, 0.1)", borderRadius: "4px", borderLeft: "4px solid #ef6c00" }}>
              <Typography variant="body2" color={colors.grey[100]}>
                You are requesting the sender to modify or re-upload this document. Please specify exactly what needs to be changed below.

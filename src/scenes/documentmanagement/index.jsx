@@ -12,13 +12,15 @@ import {
   limit, 
   startAfter, 
   getDocs, 
+  arrayUnion,
   getCountFromServer 
 } from "firebase/firestore"; 
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
 import DocumentUpdateModal from "../../modals/documentmanagementmodals/DocumentUpdateModal";
 import DocumentRequestModal from "../../modals/documentmanagementmodals/DocumentRequestModal";
-import DocumentMDetailsModal from "../../modals/documentmanagementmodals/DocumentDetailsModal";
+import DocumentDetailsModal from "../../modals/documentmanagementmodals/DocumentDetailsModal";
+import DocumentDeleteModal from "../../modals/documentmanagementmodals/DocumentDeleteModal";
 import ActionsModal from "../../modals/documentmanagementmodals/ActionsModal";
 import "./index.css"; 
 
@@ -90,34 +92,38 @@ const DocumentManagement = () => {
 
   // --- HANDLER FUNCTIONS ---
   const handleUpdateStatus = async (id, newAdminStatus, adminRemarks) => {
+    // 1. Start Highlight
+    setHighlightedRowId(id);
+    setActionType("update"); // Uses the green/blue highlight
+
     try {
       const docRef = doc(db, "documents", id);
-      
-      // Build the update object
+      const messageBody = typeof adminRemarks === 'string' ? adminRemarks : (adminRemarks?.adminRemarks || adminRemarks?.adminReply);
+
       const updateData = {
-        adminStatus: newAdminStatus, // Internal admin workflow
-        // status: "Sent", // We DON'T change this anymore so it stays in user outbox
-        updatedAt: new Date()
+        adminStatus: newAdminStatus,
+        updatedAt: new Date(),
+        thread: arrayUnion({
+          sender: "Admin",
+          message: messageBody ? `STATUS UPDATE [${newAdminStatus}]: ${messageBody}` : `Status changed to: ${newAdminStatus}`,
+          timestamp: new Date().toISOString()
+        })
       };
 
-      // Handle remarks/replies dynamically based on which modal sent them
-      if (typeof adminRemarks === 'string') {
-        updateData.adminReply = adminRemarks;
-      } else if (adminRemarks?.adminRemarks) {
-        updateData.adminReply = adminRemarks.adminRemarks;
-      } else if (adminRemarks?.adminReply) {
-        updateData.adminReply = adminRemarks.adminReply;
-      }
-
-      await updateDoc(docRef, updateData);
+  await updateDoc(docRef, updateData);
       
+      // Close modal but wait to clear highlight so user sees the change
       setIsUpdateModalOpen(false);
-      setIsRequestModalOpen(false);
-      setIsReplyModalOpen(false);
-      fetchDocs(); 
+
+      setTimeout(() => {
+        setHighlightedRowId(null);
+        setActionType("");
+        fetchDocs(); 
+      }, 1200); // Slightly longer to allow the user to see the row highlighted
+      
     } catch (error) {
       console.error("Error updating status:", error);
-      alert("Failed to update: " + error.message);
+      setHighlightedRowId(null);
     }
   };
 
@@ -139,6 +145,56 @@ const DocumentManagement = () => {
     handleView(params.row);
   };
 
+  // 1. Function to switch from Actions Modal to Request Modal
+  const handleOpenRequestModal = () => {
+    setIsActionsModalOpen(false);
+    setIsRequestModalOpen(true);
+  };
+
+  // 2. Function to actually save the revision request to Firebase
+  const handleFinalSubmitRevision = async (id, remarks) => {
+    setHighlightedRowId(id);
+    setActionType("revision");
+
+    try {
+      const docRef = doc(db, "documents", id);
+      await updateDoc(docRef, {
+        adminStatus: "Revision Requested",
+        // Push the revision details into the thread so User sees it in their Inbox
+        thread: arrayUnion({
+          sender: "Admin",
+          message: `⚠️ REVISION REQUESTED: ${remarks}`,
+          timestamp: new Date().toISOString()
+        }),
+        updatedAt: new Date(),
+      });
+      
+      setIsRequestModalOpen(false);
+
+      setTimeout(() => {
+        setHighlightedRowId(null);
+        setActionType("");
+        fetchDocs(); 
+      }, 1200);
+    } catch (error) {
+      console.error("Error sending revision:", error);
+      setHighlightedRowId(null);
+    }
+};
+
+  // --- DELETE WITH FLASH ---
+const handleConfirmDelete = (id) => {
+    setHighlightedRowId(id);
+    setActionType("delete"); // This triggers the .delete-row CSS class
+
+    // Wait for the flash animation to be visible (800ms) before refreshing the list
+    setTimeout(() => {
+      fetchDocs(); // This pulls the new list (where the doc is now gone)
+      setHighlightedRowId(null);
+      setActionType("");
+    }, 800); 
+};
+  
   const filteredRows = documents.filter((doc) => {
     // Only show documents that were sent to Admin
     if (doc.status !== "Sent") return false;
@@ -321,6 +377,12 @@ const DocumentManagement = () => {
           case "Completed": chipColor = colors.greenAccent[600]; break;
           case "Deferred": chipColor = "#ef6c00"; break;
           case "Rejected": chipColor = colors.redAccent[500]; pulse = true; break;
+
+          // ADD THIS CASE:
+          case "Revision Requested": 
+            chipColor = "#ef6c00"; // Deep orange
+            break;
+
           default: chipColor = colors.grey[500]; pulse = status === "Pending"; break;
         }
         
@@ -435,9 +497,31 @@ const DocumentManagement = () => {
           "& .MuiDataGrid-footerContainer": { borderTop: "none", backgroundColor: colors.blueAccent[700] },
           "& .MuiDataGrid-row:hover": { backgroundColor: `${colors.primary[400]} !important` },
           "& .MuiDataGrid-footerContainer": { borderTop: "none", backgroundColor: colors.blueAccent[700],},
-          // Highlight styles
-          "& .delete-flash-row, & .delete-row": { backgroundColor: `${colors.redAccent[600]} !important`, transition: "background-color 0.1s ease" },
-          "& .view-row": { backgroundColor: `${colors.greenAccent[700]} !important`, transition: "background-color 0.5s ease" },
+          "& .MuiDataGrid-row": { transition: "background-color 0.3s ease", },
+
+          // View Detail - Greyish (Matches grey[100] / blueAccent[100] grade)
+          "& .view-row": { 
+            backgroundColor: `${colors.primary[900]} !important`, // A lighter grey/navy than the background 
+            transition: "background-color 0.5s ease" 
+          },
+
+          // Update Status/Reply - Solid Green (Matches greenAccent[700])
+          "& .update-row": { 
+            backgroundColor: `${colors.greenAccent[700]} !important`, 
+            transition: "background-color 0.5s ease" 
+          },
+
+          // Revision Requested (Keep as is)
+          "& .revision-row": { 
+            backgroundColor: "rgba(239, 108, 0, 0.35) !important", 
+            transition: "background-color 0.5s ease" 
+          },
+
+          // Delete (Keep as is)
+          "& .delete-row": { 
+            backgroundColor: `${colors.redAccent[600]} !important`, 
+            color: "white" 
+          },
         }}
       >
       <DataGrid
@@ -450,7 +534,9 @@ const DocumentManagement = () => {
         // This is the key: if there are few rows, it won't shrink the table
         autoHeight={false} 
         getRowClassName={(params) => {
-          if (params.id === highlightedRowId) return `${actionType}-row`;
+          if (params.id === highlightedRowId && actionType) {
+            return `${actionType}-row`;
+          }
           return '';
         }}
         onRowClick={(params, event) => {
@@ -462,36 +548,79 @@ const DocumentManagement = () => {
       </Box>
 
       {/* MODALS */}
-      <ActionsModal 
-        open={isActionsModalOpen}
-        onClose={() => setIsActionsModalOpen(false)}
-        docData={selectedDoc}
-        onView={() => { setIsActionsModalOpen(false); setIsDetailOpen(true); }}
-        onUpdateStatus={() => { setIsActionsModalOpen(false); setIsUpdateModalOpen(true); }}
-        onRequestRevision={() => { setIsActionsModalOpen(false); setIsRequestModalOpen(true); }}
-        onReply={() => { setIsActionsModalOpen(false); setIsReplyModalOpen(true); }}
-        onDelete={() => { setIsActionsModalOpen(false); setIsDeleteModalOpen(true); }}
-      />
+    <ActionsModal 
+      open={isActionsModalOpen}
+      onClose={() => {
+        setIsActionsModalOpen(false);
+        // Only clear highlight if no other modal is opening
+        if(!isUpdateModalOpen && !isRequestModalOpen && !isDeleteModalOpen) {
+          setHighlightedRowId(null);
+        }
+      }}
+      docData={selectedDoc}
+      onView={() => { 
+        setIsActionsModalOpen(false); 
+        handleView(selectedDoc); 
+      }}
+      onUpdateStatus={() => { 
+        setHighlightedRowId(selectedDoc.id); 
+        setActionType("update");
+        setIsActionsModalOpen(false); 
+        setIsUpdateModalOpen(true); 
+      }}
+      onRequest={() => {
+        setHighlightedRowId(selectedDoc.id);
+        setActionType("revision");
+        setIsActionsModalOpen(false);
+        setIsRequestModalOpen(true);
+      }}
+      onDelete={() => {
+        setHighlightedRowId(selectedDoc.id);
+        setActionType("delete");
+        setIsActionsModalOpen(false); 
+        setIsDeleteModalOpen(true);    
+      }}
+    />
 
-      <DocumentMDetailsModal 
+    {/* DELETE MODAL */}
+    <DocumentDeleteModal 
+      open={isDeleteModalOpen}
+      onClose={() => {
+        setIsDeleteModalOpen(false);
+        setHighlightedRowId(null); // Clear highlight on cancel
+      }}
+      docData={selectedDoc}
+      onConfirm={() => handleConfirmDelete(selectedDoc.id)} 
+    />
+
+     {/* VIEW MODAL */}   
+      <DocumentDetailsModal 
         open={isDetailOpen} 
         onClose={() => { setIsDetailOpen(false); setHighlightedRowId(null); setActionType(""); }} 
         docData={selectedDoc} 
         onRefresh={noOp} 
       />
       
+      {/* UPDATE MODAL */}
       <DocumentUpdateModal 
         open={isUpdateModalOpen} 
-        onClose={() => setIsUpdateModalOpen(false)} 
+        onClose={() => {
+          setIsUpdateModalOpen(false);
+          setHighlightedRowId(null); // Clear highlight on cancel
+        }} 
         docData={selectedDoc} 
         onUpdate={handleUpdateStatus}
       />
 
+      {/* REQUEST MODAL */}
       <DocumentRequestModal 
         open={isRequestModalOpen} 
-        onClose={() => setIsRequestModalOpen(false)} 
+        onClose={() => {
+          setIsRequestModalOpen(false);
+          setHighlightedRowId(null); // Clear highlight on cancel
+        }} 
         docData={selectedDoc} 
-        onSendRequest={(id, status, remark) => handleUpdateStatus(id, status, { adminRemarks: remark })} 
+        onRequest={handleFinalSubmitRevision}
       />
       
     </Box>

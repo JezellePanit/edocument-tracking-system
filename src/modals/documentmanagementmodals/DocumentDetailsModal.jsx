@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { tokens } from "../../theme";
 
 const DocumentDetailsModal = ({ open, onClose, docData }) => {
@@ -88,16 +89,27 @@ const getPriorityColor = (priority) => {
     <Modal open={open} onClose={onClose}>
       <Box sx={style}>
         {/* HEADER */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Box>
-            <Typography variant="h3" color={colors.grey[100]} fontWeight="bold">
-              Document Details
-            </Typography>
-            <Typography variant="subtitle2" color={colors.greenAccent[500]} fontWeight="bold">
-              ID: {docData.documentId}
-            </Typography>
+        <Box 
+          display="flex" 
+          justifyContent="space-between" 
+          alignItems="flex-start" // Aligns items to the top so long titles don't push the X button down
+          mb={2}
+        >
+          {/* Left Side: Icon + Title & ID Stacked */}
+          <Box display="flex" gap="12px">
+            <VisibilityIcon sx={{ color: colors.blueAccent[100], fontSize: "28px", mt: "4px" }} />
+            <Box>
+              <Typography variant="h3" color={colors.grey[100]} fontWeight="bold" sx={{ lineHeight: 1.2 }}>
+                Document Details
+              </Typography>
+              <Typography variant="subtitle2" color={colors.greenAccent[500]} fontWeight="bold">
+                ID: {docData.documentId}
+              </Typography>
+            </Box>
           </Box>
-          <IconButton onClick={onClose}>
+
+          {/* Right Side: Close Button */}
+          <IconButton onClick={onClose} sx={{ mt: -1, mr: -1 }}>
             <CloseIcon sx={{ color: colors.grey[100] }} />
           </IconButton>
         </Box>
@@ -110,11 +122,11 @@ const getPriorityColor = (priority) => {
             <Typography variant="h5" color={colors.blueAccent[400]} fontWeight="bold" mb={2} sx={{ textTransform: "uppercase" }}>
               Sender Information
             </Typography>
-            <Grid container spacing={2}>
+            <Grid container spacing={2} gridTemplateColumns="1fr 1fr" gap="20px">
               <Grid item xs={6}>
                 <DetailItem label="Email Address" value={docData.senderEmail} colors={colors} />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={6} sx={{ ml: "110px" }}>
                 <DetailItem label="Sender Department" value={formatDepartmentName(docData.senderDepartment)} colors={colors} />
               </Grid>
               
@@ -184,7 +196,7 @@ const getPriorityColor = (priority) => {
                       color: colors.grey[100],
                       borderColor: colors.blueAccent[700],
                       textTransform: "none",
-                      "&:hover": { bgcolor: colors.primary[500] }
+                      "&:hover": { bgcolor: colors.primary[900] }
                     }}
                   >
                     {file.name || `Attachment ${index + 1}`}

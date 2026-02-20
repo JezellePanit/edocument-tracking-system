@@ -1,136 +1,151 @@
 import React, { useState, useEffect } from "react";
-import { Box, useTheme } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
-import { db, auth } from "../../firebaseConfig"; // Ensure auth is imported
-import { collection, query, where, getDocs } from "firebase/firestore";
-import Header from "../../components/Header";
+import { 
+  Box, Typography, useTheme, Card, CardContent, 
+  Stack, TextField, IconButton, Divider, Chip
+} from "@mui/material";
+import { db } from "../../firebaseConfig";
+import { 
+  collection, query, where, orderBy, onSnapshot, 
+  doc, updateDoc, arrayUnion, serverTimestamp 
+} from "firebase/firestore";
+import ArchiveIcon from '@mui/icons-material/Archive';
+import SendIcon from '@mui/icons-material/Send';
 import { tokens } from "../../theme";
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import { Button } from "@mui/material";
-import DocumentDetailsModal from "../../modals/mydocumentmodals/DocumentDetailsModal";
+import Header from "../../components/Header";
 
-const Inbox = () => {
+const Inbox = ({ userEmail }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [documents, setDocuments] = useState([]);
-  const [selectedDoc, setSelectedDoc] = useState(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  // 1. Fetch only documents forwarded to the CURRENT user
-  const fetchReceivedDocuments = async () => {
-    try {
-      setLoading(true);
-      const currentUser = auth.currentUser;
-
-      if (!currentUser) {
-        console.error("No user logged in");
-        return;
-      }
-
-      // QUERY: Only get docs where recipientId matches current user's UID
-      const q = query(
-        collection(db, "documents"),
-        where("recipientId", "==", currentUser.uid)
-      );
-
-      const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map((doc) => {
-        const docData = doc.data();
-        
-        return {
-          id: doc.id,
-          ...docData,
-          displayDate: docData.lastForwardedAt?.toDate 
-            ? docData.lastForwardedAt.toDate().toLocaleString() 
-            : "N/A"
-        };
-      });
-
-      setDocuments(data);
-    } catch (error) {
-      console.error("Error fetching received documents: ", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [docs, setDocs] = useState([]);
+  const [replyText, setReplyText] = useState({});
 
   useEffect(() => {
-    fetchReceivedDocuments();
-  }, []);
+    if (!userEmail) return;
 
-  const columns = [
-    { field: "title", headerName: "Document Title", flex: 1.5 },
-    { 
-      field: "categoryName", 
-      headerName: "Category", 
-      flex: 1 
-    },
-    { 
-      field: "displayDate", 
-      headerName: "Date Received", 
-      flex: 1.2 
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      flex: 1,
-      renderCell: (params) => (
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<VisibilityIcon />}
-          sx={{ backgroundColor: colors.blueAccent[700] }}
-          onClick={() => {
-            setSelectedDoc(params.row);
-            setIsDetailOpen(true);
-          }}
-        >
-          View
-        </Button>
-      ),
-    },
-  ];
+    // Filter: User's documents where isArchived is FALSE
+    const q = query(
+      collection(db, "documents"),
+      where("senderEmail", "==", userEmail),
+      where("isArchived", "==", false), 
+      orderBy("updatedAt", "desc")
+    );
+
+    // Real-time listener: instantly shows Admin updates/replies
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setDocs(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
+    return () => unsubscribe();
+  }, [userEmail]);
+
+  const handleSendReply = async (docId) => {
+    if (!replyText[docId]?.trim()) return;
+
+    const docRef = doc(db, "documents", docId);
+    await updateDoc(docRef, {
+      thread: arrayUnion({
+        sender: "User",
+        message: replyText[docId],
+        timestamp: new Date().toISOString()
+      }),
+      updatedAt: serverTimestamp(),
+      hasUnreadAdmin: true 
+    });
+    setReplyText({ ...replyText, [docId]: "" });
+  };
+
+  const handleArchive = async (docId) => {
+    // When archived, it disappears from this view and appears in archive.jsx
+    await updateDoc(doc(db, "documents", docId), { 
+      isArchived: true,
+      updatedAt: serverTimestamp()
+    });
+  };
 
   return (
     <Box m="20px">
-      <Header title="INBOX" subtitle="Documents received and forwarded to you" />
-      
-      <Box
-        m="40px 0 0 0"
-        height="77vh"
-        sx={{
-          "& .MuiDataGrid-root": { border: "none" },
-          "& .MuiDataGrid-cell": { borderBottom: "none" },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: colors.blueAccent[700],
-            borderBottom: "none",
-          },
-          "& .MuiDataGrid-virtualScroller": {
-            backgroundColor: colors.primary[400],
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: "none",
-            backgroundColor: colors.blueAccent[700],
-          },
-        }}
-      >
-        <DataGrid
-          rows={documents}
-          columns={columns}
-          loading={loading}
-          pageSize={10}
-          rowsPerPageOptions={[10]}
-          disableSelectionOnClick
-        />
-      </Box>
+      <Header title="INBOX" subtitle="Track your document progress and messages" />
 
-      {/* Reusing your Detail Modal to show the file and history */}
-      <DocumentDetailsModal 
-        open={isDetailOpen} 
-        onClose={() => setIsDetailOpen(false)} 
-        docData={selectedDoc} 
-      />
+      <Stack spacing={3} mt="20px">
+        {docs.length === 0 ? (
+          <Typography variant="h5" color={colors.grey[300]} sx={{ textAlign: "center", mt: 5 }}>
+            No active documents in your inbox.
+          </Typography>
+        ) : (
+          docs.map((item) => (
+            <Card key={item.id} sx={{ bgcolor: colors.primary[400], borderRadius: "8px" }}>
+              <CardContent>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Box>
+                    <Typography variant="h4" fontWeight="bold" color={colors.greenAccent[500]}>
+                      {item.title}
+                    </Typography>
+                    <Typography variant="caption" color={colors.grey[400]}>
+                      ID: {item.documentId} | Status: 
+                    </Typography>
+                    <Chip 
+                      label={item.adminStatus || "Pending"} 
+                      size="small" 
+                      sx={{ ml: 1, bgcolor: colors.blueAccent[700], color: "white", fontWeight: "bold" }} 
+                    />
+                  </Box>
+                  <IconButton onClick={() => handleArchive(item.id)} title="Archive Conversation">
+                    <ArchiveIcon sx={{ color: colors.grey[100] }} />
+                  </IconButton>
+                </Box>
+                
+                <Divider sx={{ my: 2 }} />
+
+                {/* Thread Display */}
+                <Box sx={{ 
+                  maxHeight: "250px", overflowY: "auto", p: 2, 
+                  bgcolor: colors.primary[900], borderRadius: "8px",
+                  display: "flex", flexDirection: "column", gap: 1
+                }}>
+                  {item.thread?.map((msg, idx) => (
+                    <Box 
+                      key={idx} 
+                      sx={{ 
+                        alignSelf: msg.sender === "User" ? "flex-end" : "flex-start",
+                        maxWidth: "80%" 
+                      }}
+                    >
+                      <Typography variant="caption" color={colors.grey[400]} sx={{ display: "block", textAlign: msg.sender === "User" ? "right" : "left" }}>
+                        {msg.sender === "User" ? "You" : "Admin"}
+                      </Typography>
+                      <Box sx={{ 
+                        bgcolor: msg.sender === "User" ? colors.blueAccent[700] : colors.primary[700],
+                        p: "8px 16px", borderRadius: "12px",
+                        borderBottomRightRadius: msg.sender === "User" ? 0 : "12px",
+                        borderBottomLeftRadius: msg.sender === "Admin" ? 0 : "12px"
+                      }}>
+                        <Typography variant="body1">{msg.message}</Typography>
+                      </Box>
+                    </Box>
+                  )) || <Typography variant="body2" sx={{ fontStyle: 'italic', color: colors.grey[400] }}>No messages yet.</Typography>}
+                </Box>
+
+                {/* Reply Input */}
+                <Box display="flex" mt={2} gap={1} alignItems="center">
+                  <TextField 
+                    fullWidth size="small" variant="filled" placeholder="Type a reply to admin..." 
+                    value={replyText[item.id] || ""}
+                    onChange={(e) => setReplyText({...replyText, [item.id]: e.target.value})}
+                    sx={{ bgcolor: colors.primary[900], borderRadius: "4px" }}
+                  />
+                  <IconButton 
+                    color="secondary" 
+                    onClick={() => handleSendReply(item.id)}
+                    disabled={!replyText[item.id]?.trim()}
+                  >
+                    <SendIcon />
+                  </IconButton>
+                </Box>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </Stack>
     </Box>
   );
 };
