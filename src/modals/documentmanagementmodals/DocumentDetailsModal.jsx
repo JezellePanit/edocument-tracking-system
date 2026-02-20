@@ -110,13 +110,22 @@ const getPriorityColor = (priority) => {
             <Typography variant="h5" color={colors.blueAccent[400]} fontWeight="bold" mb={2} sx={{ textTransform: "uppercase" }}>
               Sender Information
             </Typography>
-            <Grid container spacing={17}>
-              <Grid item xs={12}>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
                 <DetailItem label="Email Address" value={docData.senderEmail} colors={colors} />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={6}>
                 <DetailItem label="Sender Department" value={formatDepartmentName(docData.senderDepartment)} colors={colors} />
               </Grid>
+              
+              {/* ADDED: SENDER REMARKS/MESSAGE */}
+              {docData.remarks && (
+                <Grid item xs={12} mt={1}>
+                  <Box sx={{ p: 1, bgcolor: colors.primary[400], borderRadius: "4px", borderLeft: `4px solid ${colors.greenAccent[500]}` }}>
+                    <DetailItem label="Sender's Remarks / Message" value={docData.remarks} colors={colors} />
+                  </Box>
+                </Grid>
+              )}
             </Grid>
           </Box>
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { 
   Box, Typography, Modal, IconButton, Divider, List, ListItem, 
-  ListItemIcon, ListItemText, useTheme 
+  ListItemIcon, ListItemText, useTheme, ListItemButton
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -43,21 +43,38 @@ const ActionsModal = ({
 
         <List>
           {/* 1. VIEW DETAILS */}
-          <ListItem button onClick={onView} sx={actionStyle(colors.primary[800])}>
-            <ListItemIcon><VisibilityIcon sx={{ color: colors.blueAccent[100] }} /></ListItemIcon>
-            <ListItemText primary="View Details" secondary="See full document info" />
+          <ListItem disablePadding sx={{ mb: 1 }}>
+            <ListItemButton onClick={onView} sx={actionStyle(colors.primary[800])}>
+              <ListItemIcon><VisibilityIcon sx={{ color: colors.blueAccent[100] }} /></ListItemIcon>
+              <ListItemText primary="View Details" secondary="See full document info" />
+            </ListItemButton>
           </ListItem>
 
           {/* 2. UPDATE STATUS */}
-          <ListItem button onClick={onUpdateStatus} sx={actionStyle(colors.greenAccent[700])}>
-            <ListItemIcon><SyncAltIcon sx={{ color: colors.greenAccent[300] }} /></ListItemIcon>
-            <ListItemText primary="Update Status and Reply" secondary={`Current: ${docData.adminStatus || 'Pending'}`} />
+          <ListItem disablePadding sx={{ mb: 1 }}>
+            <ListItemButton onClick={onUpdateStatus} sx={actionStyle(colors.greenAccent[700])}>
+              <ListItemIcon><SyncAltIcon sx={{ color: colors.greenAccent[300] }} /></ListItemIcon>
+              <ListItemText primary="Update Status and Reply" secondary={`Current: ${docData.adminStatus || 'Pending'}`} />
+            </ListItemButton>
           </ListItem>
 
           {/* 3. REQUEST REVISION */}
-          <ListItem button onClick={onRequest} sx={actionStyle("#ef6c0033")}>
-            <ListItemIcon><EditNoteIcon sx={{ color: "#ef6c00" }} /></ListItemIcon>
-            <ListItemText primary="Request Revision" secondary="Ask user for corrections" />
+          <ListItem disablePadding sx={{ mb: 1 }}>
+            <ListItemButton 
+              onClick={() => {
+                console.log("Revision Requested for:", docData.documentId);
+                // Add this 'if' check to prevent the crash
+                if (typeof onRequest === "function") {
+                  onRequest(); 
+                } else {
+                  console.error("The onRequest prop was not passed to ActionsModal!");
+                }
+              }} 
+              sx={actionStyle("#ef6c0033")}
+            >
+              <ListItemIcon><EditNoteIcon sx={{ color: "#ef6c00" }} /></ListItemIcon>
+              <ListItemText primary="Request Revision" secondary="Ask user for corrections" />
+            </ListItemButton>
           </ListItem>
 
           {/* 4. REPLY */}

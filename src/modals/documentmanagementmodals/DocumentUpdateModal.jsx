@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Box, Typography, Modal, IconButton, Divider, Button, TextField, useTheme 
 } from "@mui/material";
@@ -9,9 +9,22 @@ const DocumentUpdateModal = ({ open, onClose, docData, onUpdate }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   
-  // State for the admin remarks
+  // State for the admin remarks and status
   const [remarks, setRemarks] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
+
+  // EFFECT: Handle Modal Open/Close logic
+  useEffect(() => {
+    if (open && docData) {
+      // Use adminStatus as the source of truth for the buttons
+      // Every received doc is "Pending" by default if adminStatus isn't set
+      setSelectedStatus(docData.adminStatus || "Pending");
+    } else if (!open) {
+      // Clear inputs when the modal is closed to prevent ghost data
+      setRemarks("");
+      setSelectedStatus("");
+    }
+  }, [open, docData]);
 
   if (!docData) return null;
 
@@ -22,10 +35,8 @@ const DocumentUpdateModal = ({ open, onClose, docData, onUpdate }) => {
       alert("Please select a status first.");
       return;
     }
-    // Passing doc ID, new status, and the admin message
+    // Update using the adminStatus field
     onUpdate(docData.id, selectedStatus, remarks);
-    setRemarks(""); 
-    setSelectedStatus("");
   };
 
   return (
@@ -57,6 +68,7 @@ const DocumentUpdateModal = ({ open, onClose, docData, onUpdate }) => {
           {/* TOP ROW: Document Info */}
           <Box display="grid" gridTemplateColumns="1fr 1fr" gap="20px">
             <DetailItem label="Document ID" value={docData.documentId} colors={colors} />
+            <DetailItem label="Current Admin Status" value={docData.adminStatus || "Pending"} colors={colors} />
           </Box>
 
           {/* STATUS SELECTION AREA */}
@@ -78,7 +90,7 @@ const DocumentUpdateModal = ({ open, onClose, docData, onUpdate }) => {
                     backgroundColor: selectedStatus === status ? colors.blueAccent[700] : "transparent",
                     borderColor: colors.blueAccent[700],
                     "&:hover": { 
-                      bgcolor: selectedStatus === status ? colors.blueAccent[800] : colors.primary[400],
+                      bgcolor: selectedStatus === status ? colors.blueAccent[800] : colors.primary[900],
                       borderColor: colors.blueAccent[500] 
                     }
                   }}
@@ -105,10 +117,15 @@ const DocumentUpdateModal = ({ open, onClose, docData, onUpdate }) => {
               onChange={(e) => setRemarks(e.target.value)}
               sx={{
                 mt: "8px",
-                bgcolor: colors.primary[400],
+                bgcolor: colors.primary[900],
                 borderRadius: "4px",
-                "& .MuiInputBase-root": { color: colors.grey[200] },
+                "& .MuiInputBase-root": { color: colors.grey[100] },
                 "& .MuiFilledInput-underline:before": { borderBottom: "none" },
+                "& .MuiFilledInput-root": {
+                    backgroundColor: "transparent",
+                    "&:hover": { backgroundColor: "transparent" },
+                    "&.Mui-focused": { backgroundColor: "transparent" }
+                }
               }}
             />
           </Box>
@@ -139,7 +156,6 @@ const DocumentUpdateModal = ({ open, onClose, docData, onUpdate }) => {
   );
 };
 
-// Sub-component matched to your DetailModal
 const DetailItem = ({ label, value, colors }) => (
   <Box>
     <Typography variant="caption" color={colors.greenAccent[500]} sx={{ textTransform: "uppercase", fontWeight: "bold", letterSpacing: "0.5px" }}>
